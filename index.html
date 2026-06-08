@@ -678,6 +678,42 @@
       .top-actions .admin-only { display: none !important; }
     }
 
+
+    body.public-store-mode header,
+    body.public-store-mode nav,
+    body.public-store-mode footer {
+      display: none !important;
+    }
+
+    body.public-store-mode {
+      background: #e7edf3;
+    }
+
+    body.public-store-mode main {
+      max-width: 560px;
+      padding: 12px;
+    }
+
+    body.public-store-mode .view {
+      display: none;
+    }
+
+    body.public-store-mode #tienda.view.active {
+      display: block;
+    }
+
+    body.public-store-mode .grid {
+      display: block;
+    }
+
+    body.public-store-mode .grid > * {
+      margin-bottom: 12px;
+    }
+
+    body.public-store-mode .client-shell {
+      max-width: 100%;
+    }
+
       .selected-line { outline: 2px solid rgba(46, 134, 121, .35); background: #f3fbf8; }
 </style>
 </head>
@@ -701,7 +737,6 @@
           </select>
         </label>
         <button class="ghost small admin-only" onclick="setView('marca')">Marca</button>
-        <button class="ghost small" id="mobileToggleBtn" onclick="toggleMobilePreview()">Vista celular</button>
         <button class="ghost small admin-only" onclick="exportData()">Exportar datos</button>
         <button class="ghost small admin-only" onclick="importDataPrompt()">Importar</button>
         <button class="ghost small admin-only" onclick="resetDemo()">Restaurar demo</button>
@@ -754,6 +789,14 @@
     };
     let demoRole = localStorage.getItem(DEMO_ROLE_KEY) || 'admin';
     if (!rolePermissions[demoRole]) demoRole = 'admin';
+
+    function isPublicStoreMode() {
+      return location.hash === '#cliente' || location.hash === '#tienda-clientes-kio360' || location.search.includes('cliente=1');
+    }
+
+    function publicStoreLink() {
+      return location.origin + location.pathname + '#cliente';
+    }
 
     const initialState = {
       settings: {
@@ -852,6 +895,7 @@
     }
 
     function canAccessView(view) {
+      if (isPublicStoreMode()) return view === 'tienda';
       return (rolePermissions[demoRole] || rolePermissions.admin).includes(view);
     }
 
@@ -869,7 +913,9 @@
     }
 
     function setView(view) {
-      if (!canAccessView(view)) {
+      if (isPublicStoreMode()) {
+        activeView = 'tienda';
+      } else if (!canAccessView(view)) {
         showToast(`Acceso restringido para rol ${roleLabels[demoRole]}.`);
         activeView = firstAllowedView();
       } else {
@@ -881,6 +927,7 @@
     }
 
     function renderRoleControls() {
+      if (isPublicStoreMode()) return;
       const selector = document.getElementById('roleSelector');
       if (selector) selector.value = demoRole;
       document.querySelectorAll('.admin-only').forEach(el => {
@@ -893,6 +940,10 @@
     }
 
     function renderTabs() {
+      if (isPublicStoreMode()) {
+        document.getElementById('tabs').innerHTML = '';
+        return;
+      }
       const allowedTabs = tabs.filter(([id]) => canAccessView(id));
       document.getElementById('tabs').innerHTML = allowedTabs.map(([id, label]) =>
         `<button class="tab ${activeView === id ? 'active' : ''}" onclick="setView('${id}')">${label}</button>`
@@ -939,6 +990,8 @@
     }
 
     function render() {
+      document.body.classList.toggle('public-store-mode', isPublicStoreMode());
+      if (isPublicStoreMode()) activeView = 'tienda';
       if (!canAccessView(activeView)) activeView = firstAllowedView();
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       const activeEl = document.getElementById(activeView);
@@ -1027,7 +1080,6 @@
       const frequent = state.products.filter(p => p.active && p.favorite).slice(0, 12);
       const cartTotal = state.currentCart.reduce((a, i) => a + i.qty * i.price, 0);
       document.getElementById('venta').innerHTML = `
-        <div class="mobile-hint">Vista optimizada para celular: buscador grande, botones tactiles y carrito con total fijo.</div>
         <div class="grid">
           <div class="card span-7">
             <h2>Venta rápida desde celular</h2>
@@ -1760,10 +1812,12 @@
     function renderClientStore() {
       const online = filterProducts(clientSearch).filter(p => p.active && p.online).slice(0, 40);
       const total = state.clientCart.reduce((a, i) => a + i.qty * i.price, 0);
+      const isPublic = isPublicStoreMode();
+      const adminIntro = isPublic ? '' : `
+          <div class="card span-12"><div class="between"><div><h2>Link para clientes</h2><p>Vista pública del catálogo. El cliente arma el carrito y confirma el pedido para retirar.</p></div><button onclick="copyClientLink()">Copiar link de clientes</button></div></div>`;
       document.getElementById('tienda').innerHTML = `
-        <div class="mobile-hint">Vista cliente mobile: catalogo simple, carrito y confirmacion de pedido para retirar.</div>
         <div class="grid">
-          <div class="card span-12"><div class="between"><div><h2>Link para clientes</h2><p>Vista simulada del catálogo público. El cliente arma el carrito y el pedido queda en el panel interno para preparar y retirar.</p></div><button onclick="copyClientLink()">Copiar link simulado</button></div></div>
+          ${adminIntro}
           <div class="span-7">
             <div class="client-shell">
               <div class="client-head"><div class="row"><div class="app-logo">${logoMarkup()}</div><div><h2>${state.settings.storeName}</h2><div>Pedido para retirar en tienda</div><div style="font-size:12px;opacity:.85">${escapeHtml(state.settings.location || '')}</div></div></div></div>
@@ -1795,7 +1849,11 @@
       state.clientOrders.push(order);
       state.clientCart = [];
       showToast('Pedido recibido para preparar.');
-      setView('pedidosCliente');
+      if (isPublicStoreMode()) {
+        renderClientStore();
+      } else {
+        setView('pedidosCliente');
+      }
     }
 
     function renderClientOrders() {
@@ -1821,9 +1879,9 @@
     }
 
     function copyClientLink() {
-      const link = location.href.split('#')[0] + '#tienda-clientes-kio360';
+      const link = publicStoreLink();
       navigator.clipboard?.writeText(link);
-      showToast('Link simulado copiado.');
+      showToast('Link de clientes copiado.');
     }
 
 
@@ -2186,11 +2244,13 @@
     }
 
     window.addEventListener('hashchange', () => {
-      if (location.hash.includes('tienda') && canAccessView('tienda')) setView('tienda');
+      if (isPublicStoreMode()) setView('tienda');
+      else if (location.hash.includes('tienda') && canAccessView('tienda')) setView('tienda');
     });
 
     rebuildSuggestedOrders();
-    if (location.hash.includes('tienda') && canAccessView('tienda')) activeView = 'tienda';
+    if (isPublicStoreMode()) activeView = 'tienda';
+    else if (location.hash.includes('tienda') && canAccessView('tienda')) activeView = 'tienda';
     render();
   </script>
 </body>

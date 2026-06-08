@@ -1986,7 +1986,12 @@
                 <h2>Historial y control de gestión</h2>
                 <p>Lectura consolidada de ventas, pagos y movimientos de stock para entender la operación diaria, semanal y mensual.</p>
               </div>
-              <button onclick="setView('dashboard')">Volver a inicio</button>
+              <div class="row">
+                <button class="ok" onclick="copyAiAdvisorPrompt()">Copiar contexto IA</button>
+                <button class="secondary" onclick="downloadAiAdvisorPrompt()">Descargar contexto</button>
+                <button onclick="openAiAdvisor()">Abrir IA</button>
+                <button class="secondary" onclick="setView('dashboard')">Volver a inicio</button>
+              </div>
             </div>
           </div>
 
@@ -2039,6 +2044,8 @@
             <h3>Productos más vendidos del mes</h3>
             ${renderTopProducts(stats.topProducts)}
           </div>
+
+          <textarea id="aiAdvisorPrompt" readonly aria-hidden="true" tabindex="-1" style="position:absolute;left:-99999px;top:auto;width:1px;height:1px;opacity:0;pointer-events:none;">${escapeHtml(buildAiAdvisorPrompt())}</textarea>
 
           <div class="card span-12">
             <h3>Movimientos consolidados</h3>
@@ -2211,6 +2218,188 @@
     function renderMovesTable(rows) {
       if (!rows.length) return '<p>Sin movimientos.</p>';
       return `<table><thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cant.</th><th>Stock</th></tr></thead><tbody>${rows.map(m => `<tr><td>${fmtDate(m.date)}</td><td>${getProduct(m.productId)?.name || 'Producto eliminado'}</td><td>${m.type}</td><td>${m.qty}</td><td>${m.before} → ${m.after}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+
+
+function buildAiAdvisorPrompt() {
+      const stats = buildManagementStats();
+      const products = state.products || [];
+      const suppliers = state.suppliers || [];
+      const sales = state.sales || [];
+      const payments = state.payments || [];
+      const orders = state.supplierOrders || [];
+      const clientOrders = state.clientOrders || [];
+      const today = new Date().toLocaleDateString('es-AR');
+      const brand = state.settings || {};
+
+      const monthSales = sales.filter(s => isCurrentMonthDate(s.date));
+      const soldQtyByProduct = {};
+      const soldTotalByProduct = {};
+      monthSales.forEach(s => (s.items || []).forEach(i => {
+        const key = i.productId || i.name;
+        soldQtyByProduct[key] = (soldQtyByProduct[key] || 0) + Number(i.qty || 0);
+        soldTotalByProduct[key] = (soldTotalByProduct[key] || 0) + Number(i.qty || 0) * Number(i.price || 0);
+      }));
+
+      const lowStock = products
+        .filter(p => p.active !== false && p.controlsStock !== false && Number(p.stock || 0) <= Number(p.minStock || 0))
+        .map(p => ({
+          producto: p.name,
+          categoria: p.category || '-',
+          proveedor: getSupplier(p.supplierId)?.name || '-',
+          stock: Number(p.stock || 0),
+          minimo: Number(p.minStock || 0),
+          objetivo: Number(p.targetStock || 0),
+          sugeridoComprar: Math.max(0, Number(p.targetStock || 0) - Number(p.stock || 0)),
+          costo: Number(p.cost || 0),
+          precioVenta: Number(p.price || 0)
+        }));
+
+      const noSalesThisMonth = products
+        .filter(p => p.active !== false && !soldQtyByProduct[p.id])
+        .slice(0, 20)
+        .map(p => ({ producto: p.name, categoria: p.category || '-', proveedor: getSupplier(p.supplierId)?.name || '-', stock: p.controlsStock === false ? 'sin control' : Number(p.stock || 0), precioVenta: Number(p.price || 0) }));
+
+      const marginRisks = products
+        .filter(p => p.active !== false && Number(p.price || 0) > 0 && Number(p.cost || 0) > 0)
+        .map(p => ({ producto: p.name, margenPct: ((Number(p.price || 0) - Number(p.cost || 0)) / Number(p.price || 0)) * 100, costo: Number(p.cost || 0), precioVenta: Number(p.price || 0) }))
+        .filter(p => p.margenPct < 20)
+        .sort((a, b) => a.margenPct - b.margenPct)
+        .slice(0, 15)
+        .map(p => ({ ...p, margenPct: Math.round(p.margenPct) + '%' }));
+
+      const supplierSummary = suppliers.map(s => {
+        const supplierProducts = products.filter(p => p.supplierId === s.id && p.active !== false);
+        const supplierLow = supplierProducts.filter(p => p.controlsStock !== false && Number(p.stock || 0) <= Number(p.minStock || 0));
+        const supplierMonthSales = monthSales.reduce((acc, sale) => acc + (sale.items || []).filter(i => getProduct(i.productId)?.supplierId === s.id).reduce((a, i) => a + Number(i.qty || 0) * Number(i.price || 0), 0), 0);
+        return { proveedor: s.name, productosActivos: supplierProducts.length, productosBajoStock: supplierLow.length, ventasMesRelacionadas: supplierMonthSales };
+      });
+
+      const openSupplierOrders = orders
+        .filter(o => !['Recibido','Eliminado'].includes(o.status || '') && (o.items || []).length)
+        .map(o => ({
+          proveedor: getSupplier(o.supplierId)?.name || '-',
+          estado: o.status,
+          origen: o.source === 'manual' ? 'manual' : 'sugerido del sistema',
+          productos: (o.items || []).map(i => ({ producto: getProduct(i.productId)?.name || 'Producto eliminado', cantidadPedida: Number(i.qtyConfirmed || i.qtySuggested || 0), recibido: Number(i.received || 0) }))
+        }));
+
+      const pendingClientOrders = clientOrders
+        .filter(o => !['Retirado','Cancelado'].includes(o.status || ''))
+        .slice(-20)
+        .map(o => ({ cliente: o.customerName, estado: o.status, total: Number(o.total || 0), retiro: o.pickup, pago: o.payment, productos: (o.items || []).map(i => `${i.name} x${i.qty}`) }));
+
+      const recentMovements = [];
+      (sales || []).slice(-15).forEach(s => recentMovements.push({ _date: s.date, fecha: fmtDate(s.date), flujo: 'Venta', detalle: (s.items || []).map(i => `${i.name} x${i.qty}`).join(' · '), total: Number(s.total || 0), pago: s.payment || '-' }));
+      (payments || []).slice(-15).forEach(p => recentMovements.push({ _date: p.date, fecha: fmtDate(p.date), flujo: 'Pago', detalle: p.concept || p.type, tipo: p.type, total: Number(p.amount || 0), medio: p.method || '-' }));
+      (state.stockMoves || []).slice(-15).forEach(m => recentMovements.push({ _date: m.date, fecha: fmtDate(m.date), flujo: m.type === 'venta' ? 'Venta/Stock' : 'Stock', detalle: getProduct(m.productId)?.name || 'Producto eliminado', tipo: m.type, cantidad: Number(m.qty || 0), stock: `${m.before} -> ${m.after}` }));
+      recentMovements.sort((a,b)=> new Date(b._date) - new Date(a._date));
+
+      const dataPack = {
+        fechaAnalisis: today,
+        comercio: {
+          nombre: brand.storeName || 'Despensa sin nombre cargado',
+          telefono: brand.phone || '-',
+          ubicacion: brand.location || '-',
+          aliasPago: brand.paymentAlias || '-'
+        },
+        resumenGestion: {
+          ventasHoy: stats.sales.today,
+          ventasSemana: stats.sales.week,
+          ventasMes: stats.sales.month,
+          pagosHoy: stats.payments.today,
+          pagosSemana: stats.payments.week,
+          pagosMes: stats.payments.month,
+          saldoHoy: stats.sales.today.total - stats.payments.today.total,
+          saldoSemana: stats.sales.week.total - stats.payments.week.total,
+          saldoMes: stats.sales.month.total - stats.payments.month.total,
+          stockHoy: stats.stock.today,
+          stockSemana: stats.stock.week,
+          stockMes: stats.stock.month
+        },
+        productosMasVendidosMes: stats.topProducts,
+        productosBajoStock: lowStock,
+        productosSinVentasMes: noSalesThisMonth,
+        productosConMargenBajo: marginRisks,
+        pagosMesPorTipo: stats.paymentsByType,
+        proveedores: supplierSummary,
+        pedidosProveedorAbiertos: openSupplierOrders,
+        pedidosClientesPendientes: pendingClientOrders,
+        movimientosRecientes: recentMovements.slice(0, 30)
+      };
+
+      const practices = [
+        'Analizar ventas por día, semana y mes antes de comprar mercadería.',
+        'Priorizar compras de productos con alta rotación y stock bajo.',
+        'Evitar reponer productos sin ventas recientes salvo que sean básicos necesarios.',
+        'Separar pagos por proveedores, servicios, personal y otros para entender presión de caja.',
+        'Controlar margen entre costo y precio de venta antes de promocionar.',
+        'Promocionar productos con buena disponibilidad, margen razonable y rotación baja/media.',
+        'Negociar con proveedores cuando hay muchas compras recurrentes o varios productos críticos.',
+        'Usar pedidos sugeridos como base, pero validar manualmente cantidades según ventas recientes.',
+        'Revisar productos con stock bajo todos los días antes de horarios fuertes de venta.',
+        'Comparar saldo operativo mensual contra pagos para evitar comprar por intuición sin mirar caja.'
+      ];
+
+      return [
+        'Actuá como asesor de gestión comercial para una despensa, kiosco o almacén de barrio.',
+        'Usá los datos del sistema KIO360 para entregar una lectura clara, práctica y accionable.',
+        '',
+        'Objetivo del análisis:',
+        '- Explicar el estado actual del comercio.',
+        '- Detectar riesgos de stock, caja, margen, compras y ventas.',
+        '- Recomendar qué hacer esta semana.',
+        '- Sugerir qué productos promocionar.',
+        '- Sugerir qué productos comprar y a qué proveedor mirar primero.',
+        '- Detectar productos que conviene revisar por baja rotación o margen bajo.',
+        '- Proponer acciones simples para mejorar ventas, compras y control diario.',
+        '',
+        'Prácticas de gestión que debe aplicar el análisis:',
+        practices.map(p => '- ' + p).join('\n'),
+        '',
+        'Formato de respuesta solicitado:',
+        '1. Diagnóstico general en lenguaje simple.',
+        '2. Estado de ventas, pagos y saldo operativo.',
+        '3. Alertas de stock y compras recomendadas.',
+        '4. Productos para promocionar y motivo.',
+        '5. Productos que conviene revisar o no recomprar todavía.',
+        '6. Proveedores prioritarios para comprar o negociar.',
+        '7. Acciones concretas para las próximas 24 horas.',
+        '8. Acciones concretas para los próximos 7 días.',
+        '9. Preguntas que debería responder el comerciante para mejorar la decisión.',
+        '',
+        'Datos del sistema KIO360:',
+        JSON.stringify(dataPack, null, 2),
+        '',
+        'Importante: no inventes datos no incluidos. Si falta información, indicá qué dato debería cargarse en KIO360 para mejorar el análisis.'
+      ].join('\n');
+    }
+
+function copyAiAdvisorPrompt() {
+      const text = buildAiAdvisorPrompt();
+      navigator.clipboard?.writeText(text).then(() => showToast('Contexto IA copiado.')).catch(() => {
+        const el = document.getElementById('aiAdvisorPrompt');
+        if (el) { el.focus(); el.select(); document.execCommand('copy'); showToast('Contexto IA copiado.'); }
+        else showToast('No se pudo copiar automáticamente.');
+      });
+    }
+
+function downloadAiAdvisorPrompt() {
+      const data = buildAiAdvisorPrompt();
+      const blob = new Blob([data], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kio360-contexto-ia-gestion.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Contexto IA descargado.');
+    }
+
+function openAiAdvisor() {
+      copyAiAdvisorPrompt();
+      window.open('https://chatgpt.com/', '_blank');
     }
 
     function val(id) { return document.getElementById(id)?.value?.trim() || ''; }

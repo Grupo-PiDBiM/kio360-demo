@@ -1,4 +1,4 @@
-KIO360 demo v25
+KIO360 demo v26
 
 Archivos:
 - index.html: app demo KIO360.

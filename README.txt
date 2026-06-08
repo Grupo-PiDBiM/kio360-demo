@@ -1,0 +1,1 @@
+KIO360 v23 demo para Vercel. Roles demo: Administrador con acceso completo; Asistente, Venta y Stock sin acceso a Historial. Los roles son visuales para demo; la seguridad real debe implementarse con backend, login y base de datos.

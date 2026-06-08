@@ -1,0 +1,2197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <title>KIO360</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --ink: #152033;
+      --muted: #667085;
+      --line: #d9e0ea;
+      --brand: #0f3d5e;
+      --brand-2: #1e7a76;
+      --ok: #198754;
+      --warn: #b7791f;
+      --bad: #b42318;
+      --soft: #eef4f7;
+      --shadow: 0 10px 30px rgba(21,32,51,.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: linear-gradient(135deg, var(--brand), #12263a);
+      color: #fff;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .header-row {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.28);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+
+    .app-logo svg { width: 30px; height: 30px; }
+    .app-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: .5px;
+    }
+
+    .brand-text span {
+      display: block;
+      font-size: 12px;
+      opacity: .8;
+      margin-top: 2px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 13px;
+      cursor: pointer;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 700;
+      transition: transform .08s ease, opacity .15s ease, background .15s ease;
+    }
+
+    button:active { transform: scale(.98); }
+    button.secondary { background: #e8edf3; color: var(--ink); }
+    button.ok { background: var(--ok); }
+    button.warn { background: var(--warn); }
+    button.bad { background: var(--bad); }
+    button.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.35); }
+    button.small { padding: 7px 9px; border-radius: 10px; font-size: 12px; }
+    button.full { width: 100%; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .tabs {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      gap: 8px;
+      padding: 9px 12px;
+    }
+
+    .tab {
+      background: var(--soft);
+      color: var(--ink);
+      border: 1px solid transparent;
+    }
+
+    .tab.active {
+      background: var(--brand-2);
+      color: #fff;
+    }
+
+    main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-7 { grid-column: span 7; }
+    .span-6 { grid-column: span 6; }
+    .span-5 { grid-column: span 5; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+    .span-2 { grid-column: span 2; }
+
+    .dashboard-metrics {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    h2, h3 { margin: 0 0 12px; }
+    h2 { font-size: 24px; }
+    h3 { font-size: 17px; }
+    p { color: var(--muted); line-height: 1.45; }
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 96px;
+      justify-content: center;
+    }
+
+    .metric strong { font-size: 28px; }
+    .metric span { color: var(--muted); font-size: 13px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #344054;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 12px;
+      padding: 11px 12px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--brand-2);
+      box-shadow: 0 0 0 3px rgba(30,122,118,.12);
+    }
+
+    .search-input {
+      font-size: 18px;
+      padding: 15px;
+      border-radius: 16px;
+    }
+
+    .product-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 9px;
+    }
+
+    .product-btn {
+      text-align: left;
+      color: var(--ink);
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      padding: 11px;
+      min-height: 78px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .product-btn b { font-size: 14px; }
+    .product-btn span { color: var(--muted); font-size: 12px; }
+    .product-btn.low { border-color: #f2b05e; background: #fff8ec; }
+    .product-btn.out { opacity: .55; }
+
+    .cart-line, .list-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cart-line:last-child, .list-line:last-child { border-bottom: 0; }
+    .line-title { font-weight: 800; }
+    .line-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .qty-controls { display: flex; align-items: center; gap: 6px; }
+    .qty-controls button { min-width: 32px; padding: 6px 8px; }
+
+    .total-box {
+      background: #10263a;
+      color: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .total-box strong { font-size: 24px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+
+    th {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #eef4f7;
+      color: #344054;
+    }
+
+    .badge.ok { background: #e6f4ea; color: #137333; }
+    .badge.warn { background: #fff3d6; color: #93630b; }
+    .badge.bad { background: #fce8e6; color: #a50e0e; }
+    .badge.blue { background: #e8f0fe; color: #174ea6; }
+
+    .muted { color: var(--muted); }
+    .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .between { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .mt { margin-top: 12px; }
+    .mb { margin-bottom: 12px; }
+    .hidden { display: none !important; }
+
+    .brand-preview {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f8fafc;
+    }
+
+    .store-logo-preview {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: #10263a;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+    }
+
+    .store-logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .store-logo-preview svg { width: 42px; height: 42px; }
+
+    .client-shell {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .client-head {
+      background: linear-gradient(135deg, #0f3d5e, #1e7a76);
+      color: #fff;
+      padding: 18px;
+    }
+
+    .client-body { padding: 14px; }
+
+    .system-footer {
+      padding: 18px 16px 26px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+      margin-top: 12px;
+    }
+
+    .system-footer strong { color: var(--ink); }
+
+    .system-footer .footer-product {
+      font-weight: 800;
+      letter-spacing: .4px;
+      color: var(--brand);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: #152033;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, bottom .2s ease;
+      max-width: calc(100% - 28px);
+      text-align: center;
+    }
+
+    .toast.show { opacity: 1; bottom: 28px; }
+
+
+    /* Pedidos proveedor - columnas operativas v10 */
+    .supplier-order-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      grid-column: span 12;
+      align-items: start;
+    }
+
+    .supplier-order-column {
+      background: rgba(232, 238, 244, .55);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 12px;
+      min-height: 180px;
+    }
+
+    .supplier-order-column-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 12px;
+      padding: 0 2px;
+    }
+
+    .supplier-order-column-title h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .supplier-order-card {
+      box-shadow: 0 6px 18px rgba(21,32,51,.07);
+      margin-bottom: 12px;
+    }
+
+    .supplier-order-card:last-child { margin-bottom: 0; }
+
+    @media (max-width: 900px) {
+      .supplier-order-board { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      .span-8, .span-7, .span-6, .span-5, .span-4, .span-3 { grid-column: span 12; }
+      .form-grid { grid-template-columns: 1fr; }
+      .header-row { align-items: flex-start; flex-direction: column; }
+      .top-actions { justify-content: flex-start; }
+      main { padding: 12px; }
+      .card { padding: 13px; border-radius: 16px; }
+      .product-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      table { font-size: 12px; }
+      th, td { padding: 8px 5px; }
+    }
+
+
+    /* Responsive mobile layer - KIO360 v8 */
+    .mobile-hint {
+      display: none;
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #e8f0fe;
+      color: #174ea6;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    body.mobile-preview {
+      background: #dfe6ee;
+    }
+
+    body.mobile-preview header,
+    body.mobile-preview nav,
+    body.mobile-preview footer {
+      max-width: 430px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    body.mobile-preview header {
+      border-radius: 0 0 22px 22px;
+      padding: 12px;
+    }
+
+    body.mobile-preview .header-row,
+    body.mobile-preview main,
+    body.mobile-preview .tabs {
+      max-width: 430px;
+    }
+
+    body.mobile-preview .header-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    body.mobile-preview .brand-text h1 { font-size: 21px; }
+    body.mobile-preview .brand-text span { font-size: 11px; }
+    body.mobile-preview .top-actions { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+    body.mobile-preview .top-actions button { flex: 0 0 auto; }
+    body.mobile-preview nav { position: sticky; top: 0; z-index: 19; }
+    body.mobile-preview .tabs { overflow-x: auto; padding: 8px; }
+    body.mobile-preview .tab { flex: 0 0 auto; padding: 11px 13px; }
+    body.mobile-preview main { padding: 10px; }
+    body.mobile-preview .grid { display: block; }
+    body.mobile-preview .grid > * { margin-bottom: 12px; }
+    body.mobile-preview .card { padding: 13px; border-radius: 18px; box-shadow: 0 6px 18px rgba(21,32,51,.07); }
+    body.mobile-preview h2 { font-size: 21px; }
+    body.mobile-preview h3 { font-size: 16px; }
+    body.mobile-preview p { font-size: 14px; }
+    body.mobile-preview .form-grid { grid-template-columns: 1fr; }
+    body.mobile-preview .search-input { font-size: 17px; padding: 14px; }
+    body.mobile-preview .product-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    body.mobile-preview .product-btn { min-height: 86px; padding: 10px; border-radius: 15px; }
+    body.mobile-preview .product-btn b { font-size: 13px; }
+    body.mobile-preview .product-btn span { font-size: 11px; }
+    body.mobile-preview button { min-height: 42px; }
+    body.mobile-preview button.small { min-height: 36px; padding: 8px 10px; }
+    body.mobile-preview .cart-line, body.mobile-preview .list-line { grid-template-columns: 1fr; align-items: stretch; }
+    body.mobile-preview .qty-controls { justify-content: space-between; }
+    body.mobile-preview .qty-controls button { min-width: 42px; }
+    body.mobile-preview .total-box { position: sticky; bottom: 8px; z-index: 8; box-shadow: 0 8px 24px rgba(16,38,58,.22); }
+    body.mobile-preview .total-box strong { font-size: 22px; }
+    body.mobile-preview .client-shell { max-width: 100%; border-radius: 22px; }
+    body.mobile-preview .brand-preview { align-items: flex-start; }
+    body.mobile-preview table { min-width: 520px; }
+    body.mobile-preview .card:has(table) { overflow-x: auto; }
+    body.mobile-preview .mobile-hint { display: block; }
+
+    @media (max-width: 640px) {
+      header { padding: 12px; }
+      .header-row { flex-direction: column; align-items: stretch; gap: 10px; }
+      .brand-block { align-items: center; }
+      .brand-text h1 { font-size: 21px; }
+      .brand-text span { font-size: 11px; line-height: 1.25; }
+      .app-logo { width: 44px; height: 44px; border-radius: 15px; }
+      .top-actions { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+      .top-actions button { flex: 0 0 auto; }
+      nav { position: sticky; top: 0; z-index: 19; }
+      .tabs { padding: 8px; gap: 7px; }
+      .tab { flex: 0 0 auto; padding: 11px 13px; min-height: 42px; }
+      main { padding: 10px; }
+      .grid { display: block; }
+      .grid > * { margin-bottom: 12px; }
+      .card { padding: 13px; border-radius: 18px; box-shadow: 0 6px 18px rgba(21,32,51,.07); }
+      h2 { font-size: 21px; }
+      h3 { font-size: 16px; }
+      p { font-size: 14px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .search-input { font-size: 17px; padding: 14px; }
+      .product-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .product-btn { min-height: 86px; padding: 10px; border-radius: 15px; }
+      .product-btn b { font-size: 13px; }
+      .product-btn span { font-size: 11px; }
+      button { min-height: 42px; }
+      button.small { min-height: 36px; padding: 8px 10px; }
+      .cart-line, .list-line { grid-template-columns: 1fr; align-items: stretch; }
+      .qty-controls { justify-content: space-between; }
+      .qty-controls button { min-width: 42px; }
+      .total-box { position: sticky; bottom: 8px; z-index: 8; box-shadow: 0 8px 24px rgba(16,38,58,.22); }
+      .total-box strong { font-size: 22px; }
+      .client-shell { max-width: 100%; border-radius: 22px; }
+      .brand-preview { align-items: flex-start; }
+      table { min-width: 520px; }
+      .card:has(table) { overflow-x: auto; }
+      .mobile-hint { display: block; }
+    }
+
+    @media (max-width: 360px) {
+      .product-buttons { grid-template-columns: 1fr; }
+      .brand-text h1 { font-size: 19px; }
+    }
+
+
+    /* KIO360 v9 - mobile local hardening: works as standalone file on phones */
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    img, svg, video, canvas { max-width: 100%; }
+
+    @media (max-width: 760px) {
+      :root { --radius: 16px; }
+      body { min-width: 0; overflow-x: hidden; }
+      header { position: relative; padding: 12px 10px; }
+      .header-row { width: 100%; max-width: 100%; margin: 0; }
+      .brand-block { min-width: 0; width: 100%; }
+      .brand-text { min-width: 0; }
+      .brand-text h1 { white-space: normal; overflow-wrap: anywhere; line-height: 1.1; }
+      .brand-text span { white-space: normal; overflow-wrap: anywhere; }
+      .top-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; overflow: visible; }
+      .top-actions button { width: 100%; min-width: 0; white-space: normal; padding: 9px 7px; }
+      nav { position: relative; overflow: visible; white-space: normal; }
+      .tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; max-width: 100%; padding: 8px; gap: 7px; overflow: visible; white-space: normal; }
+      .tab { width: 100%; min-width: 0; white-space: normal; text-align: center; padding: 12px 8px; line-height: 1.1; }
+      main { width: 100%; max-width: 100%; padding: 10px 8px; }
+      .grid { width: 100%; max-width: 100%; display: block; }
+      .grid > * { width: 100%; max-width: 100%; margin-bottom: 12px; }
+      .card { width: 100%; max-width: 100%; overflow: visible; padding: 12px; }
+      .between { align-items: stretch; flex-direction: column; }
+      .row { width: 100%; }
+      .row button, .row input, .row select { flex: 1 1 auto; min-width: 0; }
+      .product-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .product-btn { width: 100%; min-width: 0; overflow-wrap: anywhere; }
+      .cart-line, .list-line { grid-template-columns: 1fr; }
+      .qty-controls { width: 100%; justify-content: space-between; }
+      .qty-controls button { min-width: 44px; }
+      .total-box { position: sticky; bottom: 6px; z-index: 30; margin-left: -2px; margin-right: -2px; }
+      .client-shell { width: 100%; max-width: 100%; border-radius: 18px; }
+      .client-body, .client-head { padding: 12px; }
+      .brand-preview { flex-direction: column; align-items: flex-start; }
+      table { display: block; width: 100%; min-width: 0 !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      thead, tbody, tr { width: 100%; }
+      th, td { white-space: nowrap; }
+      input[type="file"] { font-size: 14px; padding: 9px; }
+      .system-footer { width: 100%; max-width: 100%; padding: 16px 12px 24px; }
+    }
+
+    @media (max-width: 380px) {
+      .tabs { grid-template-columns: 1fr; }
+      .top-actions { grid-template-columns: 1fr; }
+      .product-buttons { grid-template-columns: 1fr; }
+    }
+
+
+    /* KIO360 v23 - demo roles and mobile action hardening */
+    .role-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 12px;
+      padding: 6px 8px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .role-switcher select {
+      width: auto;
+      min-width: 132px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.35);
+      background: #fff;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .restricted-view {
+      max-width: 760px;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .restricted-view .badge { margin-bottom: 8px; }
+
+    .role-note {
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+      width: 100%;
+      text-align: right;
+    }
+
+    @media (max-width: 760px) {
+      .role-switcher { width: 100%; justify-content: space-between; }
+      .role-switcher select { width: 100%; min-width: 0; }
+      .role-note { text-align: left; }
+      .top-actions .admin-only { display: none !important; }
+    }
+
+      .selected-line { outline: 2px solid rgba(46, 134, 121, .35); background: #f3fbf8; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <div class="brand-block">
+        <div class="app-logo" id="headerLogo"></div>
+        <div class="brand-text">
+          <h1 id="headerStoreName">Despensa</h1>
+          <span id="headerStoreSubtitle">Gestión simple para despensa · ventas · stock · pedidos · retiro</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <label class="role-switcher">Rol demo
+          <select id="roleSelector" onchange="setDemoRole(this.value)">
+            <option value="admin">Administrador</option>
+            <option value="asistente">Asistente</option>
+            <option value="venta">Venta</option>
+            <option value="stock">Stock</option>
+          </select>
+        </label>
+        <button class="ghost small admin-only" onclick="setView('marca')">Marca</button>
+        <button class="ghost small" id="mobileToggleBtn" onclick="toggleMobilePreview()">Vista celular</button>
+        <button class="ghost small admin-only" onclick="exportData()">Exportar datos</button>
+        <button class="ghost small admin-only" onclick="importDataPrompt()">Importar</button>
+        <button class="ghost small admin-only" onclick="resetDemo()">Restaurar demo</button>
+        <div class="role-note" id="roleNote">Los roles son una simulación visual para demo.</div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="tabs" id="tabs"></div>
+  </nav>
+
+  <main>
+    <section id="dashboard" class="view active"></section>
+    <section id="venta" class="view"></section>
+    <section id="productos" class="view"></section>
+    <section id="precios" class="view"></section>
+    <section id="proveedores" class="view"></section>
+    <section id="marca" class="view"></section>
+    <section id="pedidosProveedor" class="view"></section>
+    <section id="ingresos" class="view"></section>
+    <section id="tienda" class="view"></section>
+    <section id="pedidosCliente" class="view"></section>
+    <section id="pagos" class="view"></section>
+    <section id="historial" class="view"></section>
+  </main>
+
+  <footer class="system-footer">
+    <div><span class="footer-product">KIO360</span> · creado by <strong>PiDBiM</strong> bajo metodología <strong>GTI360</strong></div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'kio360_state_v1';
+    const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+
+    const DEMO_ROLE_KEY = 'kio360_demo_role_v1';
+    const roleLabels = {
+      admin: 'Administrador',
+      asistente: 'Asistente',
+      venta: 'Venta',
+      stock: 'Stock'
+    };
+    const rolePermissions = {
+      admin: ['dashboard', 'venta', 'productos', 'precios', 'proveedores', 'marca', 'pedidosProveedor', 'ingresos', 'tienda', 'pedidosCliente', 'pagos', 'historial'],
+      asistente: ['dashboard', 'venta', 'productos', 'proveedores', 'pedidosProveedor', 'ingresos', 'pedidosCliente'],
+      venta: ['dashboard', 'venta', 'pedidosCliente'],
+      stock: ['dashboard', 'productos', 'proveedores', 'pedidosProveedor', 'ingresos']
+    };
+    let demoRole = localStorage.getItem(DEMO_ROLE_KEY) || 'admin';
+    if (!rolePermissions[demoRole]) demoRole = 'admin';
+
+    const initialState = {
+      settings: {
+        storeName: 'Despensa La Esquina',
+        paymentAlias: 'DESPENSA.KIO360',
+        phone: '3510000000',
+        location: 'Barrio / dirección de la despensa',
+        logo: ''
+      },
+      products: [
+        { id: uid(), name: 'Coca Cola 2.25L', alias: 'coca grande gaseosa', category: 'Bebidas', supplierId: 'sup1', stock: 12, minStock: 5, targetStock: 20, cost: 1800, price: 2500, favorite: true, online: true, controlsStock: true, active: true },
+        { id: uid(), name: 'Sprite 1.5L', alias: 'sprite gaseosa', category: 'Bebidas', supplierId: 'sup1', stock: 4, minStock: 6, targetStock: 16, cost: 1500, price: 2200, favorite: true, online: true, controlsStock: true, active: true },
+        { id: uid(), name: 'Yerba Playadito 1kg', alias: 'yerba playadito', category: 'Almacén', supplierId: 'sup2', stock: 7, minStock: 4, targetStock: 14, cost: 3100, price: 4200, favorite: true, online: true, controlsStock: true, active: true },
+        { id: uid(), name: 'Leche entera 1L', alias: 'leche serenísima entera lacteo', category: 'Lácteos', supplierId: 'sup3', stock: 10, minStock: 8, targetStock: 24, cost: 900, price: 1250, favorite: true, online: true, controlsStock: true, active: true },
+        { id: uid(), name: 'Pan francés', alias: 'pan panaderia', category: 'Panadería', supplierId: 'sup4', stock: 0, minStock: 0, targetStock: 0, cost: 0, price: 1500, favorite: true, online: true, controlsStock: false, active: true },
+        { id: uid(), name: 'Azúcar 1kg', alias: 'azucar', category: 'Almacén', supplierId: 'sup2', stock: 3, minStock: 6, targetStock: 18, cost: 900, price: 1350, favorite: true, online: true, controlsStock: true, active: true },
+        { id: uid(), name: 'Huevos docena', alias: 'huevos docena', category: 'Almacén', supplierId: 'sup4', stock: 9, minStock: 6, targetStock: 18, cost: 1800, price: 2500, favorite: true, online: true, controlsStock: true, active: true },
+        { id: uid(), name: 'Lavandina 1L', alias: 'lavandina limpieza', category: 'Limpieza', supplierId: 'sup5', stock: 5, minStock: 4, targetStock: 12, cost: 700, price: 1100, favorite: false, online: true, controlsStock: true, active: true }
+      ],
+      suppliers: [
+        { id: 'sup1', name: 'Distribuidora Norte', phone: '3511111111', notes: 'Bebidas y gaseosas' },
+        { id: 'sup2', name: 'Mayorista Centro', phone: '3512222222', notes: 'Almacén general' },
+        { id: 'sup3', name: 'Lácteos del Valle', phone: '3513333333', notes: 'Reposición diaria' },
+        { id: 'sup4', name: 'Proveedor Diario', phone: '3514444444', notes: 'Panadería y frescos' },
+        { id: 'sup5', name: 'Limpieza Córdoba', phone: '3515555555', notes: 'Limpieza' }
+      ],
+      sales: [],
+      stockMoves: [],
+      supplierOrders: [],
+      deletedSupplierSuggestions: [],
+      clientOrders: [],
+      priceHistory: [],
+      payments: [],
+      currentCart: [],
+      clientCart: []
+    };
+
+    let state = loadState();
+    let activeView = 'dashboard';
+    let saleSearch = '';
+    let productSearch = '';
+    let clientSearch = '';
+    let newSupplierOrderOpen = false;
+    let newSupplierOrderSupplierId = '';
+    let newSupplierOrderSearch = '';
+    let newSupplierOrderItems = [];
+    let selectedIngressOrderId = '';
+
+    const tabs = [
+      ['dashboard', 'Inicio'],
+      ['venta', 'Venta rápida'],
+      ['productos', 'Productos'],
+      ['precios', 'Precios'],
+      ['proveedores', 'Proveedores'],
+      ['pedidosProveedor', 'Pedidos proveedor'],
+      ['ingresos', 'Ingreso mercadería'],
+      ['tienda', 'Link clientes'],
+      ['pedidosCliente', 'Pedidos clientes'],
+      ['pagos', 'Pagos'],
+      ['historial', 'Historial']
+    ];
+
+    function uid() { return Math.random().toString(36).slice(2, 10); }
+    function todayISO() { return new Date().toISOString(); }
+    function fmtDate(iso) { return new Date(iso).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }); }
+    function getSupplier(id) { return state.suppliers.find(s => s.id === id) || { name: 'Sin proveedor' }; }
+    function getProduct(id) { return state.products.find(p => p.id === id); }
+    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const base = JSON.parse(JSON.stringify(initialState));
+      if (!raw) return base;
+      try {
+        const parsed = JSON.parse(raw);
+        parsed.settings = { ...base.settings, ...(parsed.settings || {}) };
+        parsed.products = parsed.products || base.products;
+        parsed.suppliers = parsed.suppliers || base.suppliers;
+        parsed.sales = parsed.sales || [];
+        parsed.stockMoves = parsed.stockMoves || [];
+        parsed.supplierOrders = parsed.supplierOrders || [];
+        parsed.deletedSupplierSuggestions = parsed.deletedSupplierSuggestions || [];
+        parsed.clientOrders = parsed.clientOrders || [];
+        parsed.priceHistory = parsed.priceHistory || [];
+        parsed.payments = parsed.payments || [];
+        parsed.currentCart = parsed.currentCart || [];
+        parsed.clientCart = parsed.clientCart || [];
+        return parsed;
+      } catch { return base; }
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    function canAccessView(view) {
+      return (rolePermissions[demoRole] || rolePermissions.admin).includes(view);
+    }
+
+    function firstAllowedView() {
+      return (rolePermissions[demoRole] || rolePermissions.admin)[0] || 'dashboard';
+    }
+
+    function setDemoRole(role) {
+      if (!rolePermissions[role]) return;
+      demoRole = role;
+      localStorage.setItem(DEMO_ROLE_KEY, demoRole);
+      if (!canAccessView(activeView)) activeView = firstAllowedView();
+      showToast(`Rol demo: ${roleLabels[demoRole]}`);
+      render();
+    }
+
+    function setView(view) {
+      if (!canAccessView(view)) {
+        showToast(`Acceso restringido para rol ${roleLabels[demoRole]}.`);
+        activeView = firstAllowedView();
+      } else {
+        activeView = view;
+      }
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(activeView).classList.add('active');
+      render();
+    }
+
+    function renderRoleControls() {
+      const selector = document.getElementById('roleSelector');
+      if (selector) selector.value = demoRole;
+      document.querySelectorAll('.admin-only').forEach(el => {
+        el.classList.toggle('hidden', demoRole !== 'admin');
+      });
+      const note = document.getElementById('roleNote');
+      if (note) note.textContent = demoRole === 'admin'
+        ? 'Administrador: acceso completo de demo.'
+        : `${roleLabels[demoRole]}: acceso limitado. Historial no disponible.`;
+    }
+
+    function renderTabs() {
+      const allowedTabs = tabs.filter(([id]) => canAccessView(id));
+      document.getElementById('tabs').innerHTML = allowedTabs.map(([id, label]) =>
+        `<button class="tab ${activeView === id ? 'active' : ''}" onclick="setView('${id}')">${label}</button>`
+      ).join('');
+    }
+
+    function toggleMobilePreview() {
+      document.body.classList.toggle('mobile-preview');
+      const btn = document.getElementById('mobileToggleBtn');
+      if (btn) btn.textContent = document.body.classList.contains('mobile-preview') ? 'Vista escritorio' : 'Vista celular';
+    }
+
+
+    function cartIconSvg() {
+      return `<svg viewBox="0 0 64 64" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 18h34l-4 21H22L18 18Z" stroke="white" stroke-width="5" stroke-linejoin="round"/>
+        <path d="M12 12h7l3 27h25" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="26" cy="50" r="4" fill="white"/><circle cx="44" cy="50" r="4" fill="white"/>
+        <path d="M28 27h14" stroke="white" stroke-width="4" stroke-linecap="round"/>
+      </svg>`;
+    }
+
+    function logoMarkup(sizeClass = '') {
+      if (state.settings.logo) return `<img src="${state.settings.logo}" alt="Logo despensa">`;
+      return cartIconSvg();
+    }
+
+    function renderHeaderBrand() {
+      const logo = document.getElementById('headerLogo');
+      if (logo) logo.innerHTML = logoMarkup();
+
+      const name = document.getElementById('headerStoreName');
+      if (name) name.textContent = state.settings.storeName || 'Despensa';
+
+      const subtitle = document.getElementById('headerStoreSubtitle');
+      if (subtitle) {
+        const parts = [];
+        if (state.settings.phone) parts.push('Tel: ' + state.settings.phone);
+        if (state.settings.location) parts.push(state.settings.location);
+        subtitle.textContent = parts.length ? parts.join(' · ') : 'Gestión simple para despensa · ventas · stock · pedidos · retiro';
+      }
+
+      document.title = (state.settings.storeName || 'Despensa') + ' - KIO360';
+    }
+
+    function render() {
+      if (!canAccessView(activeView)) activeView = firstAllowedView();
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const activeEl = document.getElementById(activeView);
+      if (activeEl) activeEl.classList.add('active');
+      renderHeaderBrand();
+      renderRoleControls();
+      renderTabs();
+      renderDashboard();
+      renderSale();
+      renderProducts();
+      renderPrices();
+      renderSuppliers();
+      renderBrand();
+      renderSupplierOrders();
+      renderIngress();
+      renderClientStore();
+      renderClientOrders();
+      renderPayments();
+      renderHistory();
+      save();
+    }
+
+    function lowStockProducts() {
+      return state.products.filter(p => p.active && p.controlsStock && p.stock <= p.minStock);
+    }
+
+    function reservedStock(productId) {
+      return state.clientOrders
+        .filter(o => ['Nuevo', 'En preparación', 'Listo para retirar'].includes(o.status))
+        .flatMap(o => o.items)
+        .filter(i => i.productId === productId)
+        .reduce((a, i) => a + i.qty, 0);
+    }
+
+    function availableStock(p) {
+      if (!p.controlsStock) return 999999;
+      return Math.max(0, Number(p.stock || 0) - reservedStock(p.id));
+    }
+
+    function renderDashboard() {
+      const totalProducts = state.products.filter(p => p.active).length;
+      const lowCount = lowStockProducts().length;
+      const pendingClient = state.clientOrders.filter(o => ['Nuevo', 'En preparación'].includes(o.status)).length;
+      const day = new Date().toDateString();
+      const todaySales = state.sales.filter(s => new Date(s.date).toDateString() === day);
+      const totalToday = todaySales.reduce((a, s) => a + s.total, 0);
+      const todayPayments = (state.payments || []).filter(p => new Date(p.date).toDateString() === day);
+      const totalPaymentsToday = todayPayments.reduce((a, p) => a + Number(p.amount || 0), 0);
+      document.getElementById('dashboard').innerHTML = `
+        <div class="grid">
+          <div class="dashboard-metrics">
+            <div class="card metric"><span>Ventas de hoy</span><strong>${money.format(totalToday)}</strong></div>
+            <div class="card metric"><span>Pagos de hoy</span><strong>${money.format(totalPaymentsToday)}</strong></div>
+            <div class="card metric"><span>Productos activos</span><strong>${totalProducts}</strong></div>
+            <div class="card metric"><span>Stock bajo</span><strong>${lowCount}</strong></div>
+            <div class="card metric"><span>Pedidos clientes pendientes</span><strong>${pendingClient}</strong></div>
+          </div>
+          <div class="card span-7">
+            <div class="between"><h2>Operación diaria</h2><button onclick="setView('venta')">Abrir venta rápida</button></div>
+            <p>Sistema operativo para cargar ventas desde celular, descontar stock, generar necesidades de reposición por proveedor y recibir pedidos de clientes para retirar.</p>
+            <div class="row mt">
+              <button class="secondary" onclick="setView('productos')">Productos</button>
+              <button class="secondary" onclick="setView('pedidosProveedor')">Pedidos proveedor</button>
+              <button class="secondary" onclick="setView('tienda')">Ver link clientes</button>
+              <button class="secondary" onclick="setView('pedidosCliente')">Pedidos clientes</button>
+              <button class="secondary" onclick="setView('pagos')">Pagos</button>
+            </div>
+          </div>
+          <div class="card span-5">
+            <h3>Alertas de stock</h3>
+            ${lowStockProducts().length ? lowStockProducts().map(p => `
+              <div class="list-line">
+                <div><div class="line-title">${p.name}</div><div class="line-sub">Stock ${p.stock} · mínimo ${p.minStock} · proveedor ${getSupplier(p.supplierId).name}</div></div>
+                <span class="badge warn">Pedir ${Math.max(0, p.targetStock - p.stock)}</span>
+              </div>`).join('') : '<p>No hay productos bajo mínimo.</p>'}
+          </div>
+          <div class="card span-12">
+            <h3>Últimos movimientos</h3>
+            ${renderRecentMovementsTable()}
+          </div>
+        </div>`;
+    }
+
+    function renderSale() {
+      const filtered = filterProducts(saleSearch).filter(p => p.active).slice(0, 24);
+      const frequent = state.products.filter(p => p.active && p.favorite).slice(0, 12);
+      const cartTotal = state.currentCart.reduce((a, i) => a + i.qty * i.price, 0);
+      document.getElementById('venta').innerHTML = `
+        <div class="mobile-hint">Vista optimizada para celular: buscador grande, botones tactiles y carrito con total fijo.</div>
+        <div class="grid">
+          <div class="card span-7">
+            <h2>Venta rápida desde celular</h2>
+            <input class="search-input" placeholder="Buscar producto o alias..." value="${escapeHtml(saleSearch)}" oninput="saleSearch=this.value; renderSale();" />
+            <div class="row mt">
+              <button class="secondary small" onclick="saleSearch=''; renderSale();">Limpiar</button>
+              <button class="warn small" onclick="addMiscSale()">Varios / monto libre</button>
+            </div>
+            <h3 class="mt">${saleSearch ? 'Resultados' : 'Frecuentes'}</h3>
+            <div class="product-buttons">
+              ${(saleSearch ? filtered : frequent).map(p => renderProductButton(p, 'addToCart')).join('')}
+            </div>
+            <h3 class="mt">Categorías rápidas</h3>
+            <div class="row">${categories().map(c => `<button class="secondary small" onclick="saleSearch='${escapeAttr(c)}'; renderSale();">${c}</button>`).join('')}</div>
+          </div>
+          <div class="card span-5">
+            <div class="between"><h2>Carrito</h2><button class="secondary small" onclick="clearCart()">Vaciar</button></div>
+            ${state.currentCart.length ? state.currentCart.map(i => renderCartLine(i, 'current')).join('') : '<p>No hay productos cargados.</p>'}
+            <div class="total-box"><span>Total</span><strong>${money.format(cartTotal)}</strong></div>
+            <div class="form-grid mt">
+              <div><label>Medio de pago</label><select id="salePayment"><option>Efectivo</option><option>Transferencia</option><option>Mercado Pago</option><option>Tarjeta</option></select></div>
+              <div><label>Observación</label><input id="saleNote" placeholder="Opcional" /></div>
+            </div>
+            <button class="ok full mt" onclick="confirmSale()" ${state.currentCart.length ? '' : 'disabled'}>Confirmar venta</button>
+          </div>
+        </div>`;
+    }
+
+    function renderProductButton(p, fn) {
+      const low = p.controlsStock && p.stock <= p.minStock;
+      const out = p.controlsStock && availableStock(p) <= 0;
+      return `<button class="product-btn ${low ? 'low' : ''} ${out ? 'out' : ''}" onclick="${fn}('${p.id}')">
+        <b>${p.name}</b>
+        <span>${money.format(p.price)} · ${p.controlsStock ? 'Stock disp. ' + availableStock(p) : 'Sin control stock'}</span>
+      </button>`;
+    }
+
+    function renderClientProductButton(p) {
+      const out = p.controlsStock && availableStock(p) <= 0;
+      const status = out ? 'Sin stock' : 'Disponible';
+      return `<button class="product-btn ${out ? 'out' : ''}" onclick="addToClientCart('${p.id}')" ${out ? 'disabled' : ''}>
+        <b>${p.name}</b>
+        <span>${money.format(p.price)} · ${status}</span>
+      </button>`;
+    }
+
+    function filterProducts(q) {
+      const clean = normalize(q);
+      if (!clean) return state.products;
+      return state.products.filter(p => normalize(`${p.name} ${p.alias} ${p.category}`).includes(clean));
+    }
+
+    function normalize(v) { return String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    function categories() { return [...new Set(state.products.filter(p => p.active).map(p => p.category).filter(Boolean))]; }
+
+    function addToCart(productId) {
+      const p = getProduct(productId);
+      if (!p) return;
+      if (p.controlsStock && availableStock(p) <= cartQty(productId, state.currentCart)) {
+        showToast('No hay stock disponible suficiente.');
+        return;
+      }
+      const line = state.currentCart.find(i => i.productId === productId && !i.misc);
+      if (line) line.qty += 1;
+      else state.currentCart.push({ productId, name: p.name, qty: 1, price: p.price, misc: false });
+      renderSale();
+    }
+
+    function cartQty(productId, cart) { return cart.filter(i => i.productId === productId).reduce((a, i) => a + i.qty, 0); }
+
+    function addMiscSale() {
+      const name = prompt('Concepto. Ejemplo: Varios, pan, caramelos sueltos');
+      if (!name) return;
+      const amount = Number(prompt('Monto vendido'));
+      if (!amount || amount <= 0) return showToast('Monto inválido.');
+      state.currentCart.push({ productId: null, name, qty: 1, price: amount, misc: true });
+      renderSale();
+    }
+
+    function renderCartLine(i, cartType) {
+      const key = i.misc ? `misc-${state[cartType === 'current' ? 'currentCart' : 'clientCart'].indexOf(i)}` : i.productId;
+      return `<div class="cart-line">
+        <div><div class="line-title">${i.name}</div><div class="line-sub">${money.format(i.price)} x ${i.qty} = ${money.format(i.price * i.qty)}</div></div>
+        <div class="qty-controls">
+          <button class="secondary small" onclick="changeCartQty('${cartType}', '${key}', -1)">-</button>
+          <b>${i.qty}</b>
+          <button class="secondary small" onclick="changeCartQty('${cartType}', '${key}', 1)">+</button>
+          <button class="bad small" onclick="removeCartItem('${cartType}', '${key}')">×</button>
+        </div>
+      </div>`;
+    }
+
+    function changeCartQty(cartType, key, delta) {
+      const cart = cartType === 'current' ? state.currentCart : state.clientCart;
+      const idx = key.startsWith('misc-') ? Number(key.split('-')[1]) : cart.findIndex(i => i.productId === key && !i.misc);
+      if (idx < 0) return;
+      const item = cart[idx];
+      if (delta > 0 && item.productId) {
+        const p = getProduct(item.productId);
+        if (p.controlsStock && availableStock(p) <= cartQty(item.productId, cart)) return showToast('No hay stock disponible suficiente.');
+      }
+      item.qty += delta;
+      if (item.qty <= 0) cart.splice(idx, 1);
+      render();
+    }
+
+    function removeCartItem(cartType, key) {
+      const cart = cartType === 'current' ? state.currentCart : state.clientCart;
+      const idx = key.startsWith('misc-') ? Number(key.split('-')[1]) : cart.findIndex(i => i.productId === key && !i.misc);
+      if (idx >= 0) cart.splice(idx, 1);
+      render();
+    }
+
+    function clearCart() { state.currentCart = []; renderSale(); }
+
+    function confirmSale(sourceOrderId) {
+      const cart = sourceOrderId ? state.clientOrders.find(o => o.id === sourceOrderId)?.items : state.currentCart;
+      if (!cart || !cart.length) return;
+      for (const item of cart) {
+        if (!item.productId) continue;
+        const p = getProduct(item.productId);
+        if (p && p.controlsStock && p.stock < item.qty) return showToast(`Stock insuficiente: ${p.name}`);
+      }
+      const total = cart.reduce((a, i) => a + i.qty * i.price, 0);
+      const sale = { id: uid(), date: todayISO(), items: JSON.parse(JSON.stringify(cart)), total, payment: sourceOrderId ? 'Pedido cliente' : document.getElementById('salePayment')?.value || 'No informado', note: sourceOrderId ? `Pedido cliente ${sourceOrderId}` : document.getElementById('saleNote')?.value || '' };
+      state.sales.push(sale);
+      cart.forEach(item => {
+        if (!item.productId) return;
+        const p = getProduct(item.productId);
+        if (!p || !p.controlsStock) return;
+        const before = Number(p.stock || 0);
+        p.stock = before - item.qty;
+        addMove(p.id, 'venta', -item.qty, before, p.stock, sourceOrderId ? 'Venta por retiro cliente' : 'Venta mostrador');
+      });
+      if (!sourceOrderId) state.currentCart = [];
+      rebuildSuggestedOrders();
+      showToast('Venta registrada y stock actualizado.');
+      render();
+    }
+
+    function addMove(productId, type, qty, before, after, note) {
+      state.stockMoves.push({ id: uid(), date: todayISO(), productId, type, qty, before, after, note });
+    }
+
+    function supplierSuggestionKey(supplierId, productId) {
+      return `${supplierId}:${productId}`;
+    }
+
+    function rebuildSuggestedOrders() {
+      const lowProducts = lowStockProducts();
+      const activeLowKeys = new Set(lowProducts.map(p => supplierSuggestionKey(p.supplierId, p.id)));
+      state.deletedSupplierSuggestions = (state.deletedSupplierSuggestions || []).filter(key => activeLowKeys.has(key));
+
+      const bySupplier = new Map();
+      lowProducts.forEach(p => {
+        const key = supplierSuggestionKey(p.supplierId, p.id);
+        if ((state.deletedSupplierSuggestions || []).includes(key)) return;
+        const qty = Math.max(0, Number(p.targetStock || p.minStock) - Number(p.stock || 0));
+        if (qty <= 0) return;
+        if (!bySupplier.has(p.supplierId)) bySupplier.set(p.supplierId, []);
+        bySupplier.get(p.supplierId).push({ productId: p.id, qtySuggested: qty, qtyConfirmed: qty, received: 0 });
+      });
+
+      state.supplierOrders
+        .filter(o => o.status === 'Sugerido' && o.source !== 'manual')
+        .forEach(o => {
+          if (!bySupplier.has(o.supplierId)) o.items = [];
+        });
+
+      [...bySupplier.entries()].forEach(([supplierId, items]) => {
+        let order = state.supplierOrders.find(o => o.supplierId === supplierId && o.status === 'Sugerido' && o.source !== 'manual');
+        if (!order) {
+          order = { id: uid(), date: todayISO(), supplierId, status: 'Sugerido', source: 'auto', items: [] };
+          state.supplierOrders.push(order);
+        }
+        order.items = items;
+      });
+      save();
+    }
+
+    function renderProducts() {
+      const filtered = filterProducts(productSearch).filter(p => p.active !== false);
+      document.getElementById('productos').innerHTML = `
+        <div class="grid">
+          <div class="card span-5">
+            <h2>Producto</h2>
+            <div class="form-grid">
+              <div><label>Nombre</label><input id="pName" placeholder="Ej: Coca Cola 2.25L"></div>
+              <div><label>Alias de búsqueda</label><input id="pAlias" placeholder="Ej: coca grande"></div>
+              <div><label>Categoría</label><input id="pCategory" placeholder="Ej: Bebidas"></div>
+              <div><label>Proveedor</label><select id="pSupplier">${supplierOptions()}</select></div>
+              <div><label>Stock actual</label><input id="pStock" type="number" value="0"></div>
+              <div><label>Stock mínimo</label><input id="pMin" type="number" value="0"></div>
+              <div><label>Stock objetivo</label><input id="pTarget" type="number" value="0"></div>
+              <div><label>Costo</label><input id="pCost" type="number" value="0"></div>
+              <div><label>Precio venta</label><input id="pPrice" type="number" value="0"></div>
+              <div><label>Controla stock</label><select id="pControls"><option value="true">Sí</option><option value="false">No</option></select></div>
+              <div><label>Visible online</label><select id="pOnline"><option value="true">Sí</option><option value="false">No</option></select></div>
+              <div><label>Favorito venta</label><select id="pFav"><option value="false">No</option><option value="true">Sí</option></select></div>
+            </div>
+            <button class="ok full mt" onclick="createProduct()">Crear producto</button>
+          </div>
+          <div class="card span-7">
+            <div class="between"><h2>Productos cargados</h2><input style="max-width:280px" placeholder="Buscar..." value="${escapeHtml(productSearch)}" oninput="productSearch=this.value; renderProducts();"></div>
+            <div style="overflow:auto">${renderProductsTable(filtered)}</div>
+          </div>
+        </div>`;
+    }
+
+    function supplierOptions(selected) {
+      return state.suppliers.map(s => `<option value="${s.id}" ${selected === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+    }
+
+    function renderProductsTable(products) {
+      if (!products.length) return '<p>No hay productos.</p>';
+      return `<table><thead><tr><th>Producto</th><th>Proveedor</th><th>Stock</th><th>Precio</th><th>Online</th><th></th></tr></thead><tbody>
+        ${products.map(p => `<tr>
+          <td><b>${p.name}</b><div class="line-sub">${p.category} · ${p.alias || ''}</div></td>
+          <td>${getSupplier(p.supplierId).name}</td>
+          <td>${p.controlsStock ? `${p.stock} / mín. ${p.minStock}` : 'No controla'}</td>
+          <td>${money.format(p.price)}</td>
+          <td>${p.online ? '<span class="badge ok">Sí</span>' : '<span class="badge">No</span>'}</td>
+          <td><button class="secondary small" onclick="editProduct('${p.id}')">Editar</button></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+    }
+
+    function createProduct() {
+      const name = val('pName');
+      if (!name) return showToast('Falta nombre de producto.');
+      const p = {
+        id: uid(), name, alias: val('pAlias'), category: val('pCategory') || 'General', supplierId: val('pSupplier'),
+        stock: num('pStock'), minStock: num('pMin'), targetStock: num('pTarget'), cost: num('pCost'), price: num('pPrice'),
+        controlsStock: val('pControls') === 'true', online: val('pOnline') === 'true', favorite: val('pFav') === 'true', active: true
+      };
+      state.products.push(p);
+      addMove(p.id, 'alta', p.stock, 0, p.stock, 'Alta inicial de producto');
+      rebuildSuggestedOrders();
+      showToast('Producto creado.');
+      render();
+    }
+
+    function editProduct(id) {
+      const p = getProduct(id);
+      if (!p) return;
+      const name = prompt('Nombre', p.name); if (name === null) return;
+      const price = Number(prompt('Precio venta', p.price)); if (Number.isNaN(price)) return;
+      const stock = Number(prompt('Stock actual', p.stock)); if (Number.isNaN(stock)) return;
+      const min = Number(prompt('Stock mínimo', p.minStock)); if (Number.isNaN(min)) return;
+      const target = Number(prompt('Stock objetivo', p.targetStock)); if (Number.isNaN(target)) return;
+      const oldPrice = p.price;
+      const oldStock = p.stock;
+      p.name = name; p.price = price; p.stock = stock; p.minStock = min; p.targetStock = target;
+      if (oldPrice !== price) state.priceHistory.push({ id: uid(), date: todayISO(), productId: id, oldPrice, newPrice: price, note: 'Edición manual' });
+      if (oldStock !== stock) addMove(id, 'ajuste', stock - oldStock, oldStock, stock, 'Ajuste manual');
+      rebuildSuggestedOrders();
+      render();
+    }
+
+    function renderPrices() {
+      document.getElementById('precios').innerHTML = `
+        <div class="grid">
+          <div class="card span-4">
+            <h2>Cambio rápido de costos y precios</h2>
+            <p class="line-sub">El aumento impacta primero en costo y recalcula el precio de venta manteniendo el margen actual.</p>
+            <label>Proveedor</label><select id="priceSupplier"><option value="all">Todos</option>${supplierOptions()}</select>
+            <label class="mt">Aumento porcentual sobre costo</label><input id="pricePct" type="number" placeholder="Ej: 10">
+            <button class="warn full mt" onclick="bulkIncreasePrices()">Aplicar aumento a costos</button>
+          </div>
+          <div class="card span-8">
+            <h2>Precios actuales</h2>
+            <div style="overflow:auto"><table><thead><tr><th>Producto</th><th>Costo</th><th>Venta</th><th>Margen</th><th></th></tr></thead><tbody>
+              ${state.products.filter(p=>p.active).map(p => `<tr><td><b>${p.name}</b><div class="line-sub">${getSupplier(p.supplierId).name}</div></td><td>${money.format(p.cost)}</td><td>${money.format(p.price)}</td><td>${p.cost ? Math.round(((p.price-p.cost)/p.cost)*100) : 0}%</td><td><button class="secondary small" onclick="quickPrice('${p.id}')">Cambiar</button></td></tr>`).join('')}
+            </tbody></table></div>
+          </div>
+          <div class="card span-12"><h3>Historial de precios</h3>${renderPriceHistory()}</div>
+        </div>`;
+    }
+
+    function recalcSalePriceFromCost(oldCost, oldPrice, newCost) {
+      if (!newCost || newCost < 0) return 0;
+      if (oldCost && oldCost > 0) {
+        const marginFactor = oldPrice / oldCost;
+        return Math.round(newCost * marginFactor);
+      }
+      return oldPrice || newCost;
+    }
+
+    function quickPrice(id) {
+      const p = getProduct(id); if (!p) return;
+      const newCost = Number(prompt(`Nuevo costo para ${p.name}`, p.cost));
+      if (Number.isNaN(newCost) || newCost < 0) return;
+      const oldCost = p.cost;
+      const oldPrice = p.price;
+      const suggestedPrice = recalcSalePriceFromCost(oldCost, oldPrice, newCost);
+      const finalPrice = Number(prompt(`Nuevo precio de venta sugerido para ${p.name}`, suggestedPrice));
+      if (Number.isNaN(finalPrice) || finalPrice < 0) return;
+      p.cost = newCost;
+      p.price = finalPrice;
+      state.priceHistory.push({ id: uid(), date: todayISO(), productId: id, oldCost, newCost, oldPrice, newPrice: finalPrice, note: 'Cambio rápido de costo' });
+      showToast('Costo actualizado y precio de venta recalculado.');
+      render();
+    }
+
+    function bulkIncreasePrices() {
+      const supplierId = val('priceSupplier');
+      const pct = num('pricePct');
+      if (!pct) return showToast('Indicar porcentaje.');
+      state.products.filter(p => p.active && (supplierId === 'all' || p.supplierId === supplierId)).forEach(p => {
+        const oldCost = p.cost;
+        const oldPrice = p.price;
+        const newCost = Math.round((p.cost || 0) * (1 + pct / 100));
+        const newPrice = recalcSalePriceFromCost(oldCost, oldPrice, newCost);
+        p.cost = newCost;
+        p.price = newPrice;
+        state.priceHistory.push({ id: uid(), date: todayISO(), productId: p.id, oldCost, newCost, oldPrice, newPrice, note: `Aumento costo ${pct}%` });
+      });
+      showToast('Aumento aplicado a costos y ventas recalculadas.');
+      render();
+    }
+
+    function renderPriceHistory() {
+      const rows = state.priceHistory.slice(-20).reverse();
+      if (!rows.length) return '<p>Sin cambios registrados.</p>';
+      return `<table><thead><tr><th>Fecha</th><th>Producto</th><th>Costo anterior</th><th>Costo nuevo</th><th>Venta anterior</th><th>Venta nueva</th><th>Nota</th></tr></thead><tbody>${rows.map(h => `<tr><td>${fmtDate(h.date)}</td><td>${getProduct(h.productId)?.name || 'Producto eliminado'}</td><td>${h.oldCost !== undefined ? money.format(h.oldCost) : '-'}</td><td>${h.newCost !== undefined ? money.format(h.newCost) : '-'}</td><td>${money.format(h.oldPrice)}</td><td>${money.format(h.newPrice)}</td><td>${h.note}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderSuppliers() {
+      document.getElementById('proveedores').innerHTML = `
+        <div class="grid">
+          <div class="card span-4"><h2>Nuevo proveedor</h2><label>Nombre</label><input id="sName"><label class="mt">Teléfono</label><input id="sPhone"><label class="mt">Notas</label><textarea id="sNotes"></textarea><button class="ok full mt" onclick="createSupplier()">Crear proveedor</button></div>
+          <div class="card span-8"><h2>Proveedores</h2>${state.suppliers.map(s => `<div class="list-line"><div><div class="line-title">${s.name}</div><div class="line-sub">${s.phone || 'Sin teléfono'} · ${s.notes || ''}</div></div><span class="badge blue">${state.products.filter(p=>p.supplierId===s.id).length} productos</span></div>`).join('')}</div>
+        </div>`;
+    }
+
+    function createSupplier() {
+      const name = val('sName'); if (!name) return showToast('Falta nombre.');
+      state.suppliers.push({ id: uid(), name, phone: val('sPhone'), notes: val('sNotes') });
+      showToast('Proveedor creado.'); render();
+    }
+
+    function renderSupplierOrders() {
+      rebuildSuggestedOrders();
+      const orders = state.supplierOrders.filter(o => !['Recibido','Eliminado'].includes(o.status) && o.items.length);
+      const toRequest = orders.filter(o => o.status !== 'Pedido enviado');
+      const sentToSupplier = orders.filter(o => o.status === 'Pedido enviado');
+      document.getElementById('pedidosProveedor').innerHTML = `
+        <div class="grid">
+          <div class="card span-12"><div class="between"><h2>Pedidos por proveedor</h2><div class="row"><button class="ok" onclick="openNewSupplierOrder()">Nuevo pedido</button><button onclick="rebuildSuggestedOrders(); renderSupplierOrders();">Actualizar sugeridos</button></div></div>
+          <p>La columna <strong>A pedir</strong> muestra los pedidos pendientes de enviar. Al seleccionar <strong>Marcar enviado</strong>, el pedido pasa a la columna <strong>Proveedor</strong> para identificar que ya fue enviado y queda pendiente de ingreso.</p></div>
+          ${newSupplierOrderOpen ? renderNewSupplierOrderForm() : ''}
+          <div class="supplier-order-board">
+            <section class="supplier-order-column">
+              <div class="supplier-order-column-title"><h3>A pedir</h3><span class="badge warn">${toRequest.length}</span></div>
+              ${toRequest.length ? toRequest.map(o => renderSupplierOrderCard(o)).join('') : '<div class="card supplier-order-card"><p>No hay pedidos pendientes de enviar.</p></div>'}
+            </section>
+            <section class="supplier-order-column">
+              <div class="supplier-order-column-title"><h3>Proveedor</h3><span class="badge blue">${sentToSupplier.length}</span></div>
+              ${sentToSupplier.length ? sentToSupplier.map(o => renderSupplierOrderCard(o)).join('') : '<div class="card supplier-order-card"><p>No hay pedidos enviados a proveedor.</p></div>'}
+            </section>
+          </div>
+        </div>`;
+    }
+
+    function openNewSupplierOrder() {
+      newSupplierOrderOpen = true;
+      newSupplierOrderSupplierId = newSupplierOrderSupplierId || state.suppliers[0]?.id || '';
+      newSupplierOrderSearch = '';
+      newSupplierOrderItems = [];
+      renderSupplierOrders();
+    }
+
+    function closeNewSupplierOrder() {
+      newSupplierOrderOpen = false;
+      newSupplierOrderSearch = '';
+      newSupplierOrderItems = [];
+      renderSupplierOrders();
+    }
+
+    function renderNewSupplierOrderForm() {
+      if (!newSupplierOrderSupplierId && state.suppliers.length) newSupplierOrderSupplierId = state.suppliers[0].id;
+      const supplierProducts = state.products
+        .filter(p => p.active !== false && p.supplierId === newSupplierOrderSupplierId)
+        .filter(p => (`${p.name} ${p.alias || ''} ${p.category || ''}`).toLowerCase().includes((newSupplierOrderSearch || '').toLowerCase()));
+      const selectedTotal = newSupplierOrderItems.reduce((a, i) => a + (getProduct(i.productId)?.cost || 0) * i.qtyConfirmed, 0);
+      return `<div class="card span-12">
+        <div class="between"><div><h2>Nuevo pedido</h2><p>Crear un pedido manual seleccionando proveedor, productos y cantidades.</p></div><button class="secondary" onclick="closeNewSupplierOrder()">Cerrar</button></div>
+        <div class="form-grid mt">
+          <div><label>Proveedor</label><select id="newOrderSupplier" onchange="newSupplierOrderSupplierId=this.value; newSupplierOrderItems=[]; renderSupplierOrders();">${state.suppliers.map(s=>`<option value="${s.id}" ${s.id===newSupplierOrderSupplierId?'selected':''}>${s.name}</option>`).join('')}</select></div>
+          <div><label>Buscar producto del proveedor</label><input id="newOrderSearch" value="${newSupplierOrderSearch}" placeholder="Ej: coca, yerba, azúcar" oninput="newSupplierOrderSearch=this.value; renderSupplierOrders();"></div>
+        </div>
+        <div class="table-wrap mt">
+          <table><thead><tr><th>Producto</th><th>Stock</th><th>Costo</th><th>Cantidad</th><th></th></tr></thead><tbody>
+            ${supplierProducts.map(p=>`<tr><td>${p.name}<div class="line-sub">${p.category || ''}</div></td><td>${p.stock}</td><td>${money.format(p.cost || 0)}</td><td><input id="newQty_${p.id}" type="number" min="1" value="1" style="width:78px"></td><td><button class="secondary small" onclick="addProductToNewSupplierOrder('${p.id}')">Agregar</button></td></tr>`).join('') || '<tr><td colspan="5">No hay productos para este proveedor o búsqueda.</td></tr>'}
+          </tbody></table>
+        </div>
+        <h3 class="mt">Productos seleccionados</h3>
+        ${newSupplierOrderItems.length ? `<div class="table-wrap"><table><thead><tr><th>Producto</th><th>Cantidad</th><th>Costo est.</th><th></th></tr></thead><tbody>${newSupplierOrderItems.map(i=>`<tr><td>${getProduct(i.productId)?.name || 'Producto eliminado'}</td><td><input type="number" min="1" value="${i.qtyConfirmed}" style="width:78px" onchange="updateNewSupplierOrderItemQty('${i.productId}', this.value)"></td><td>${money.format((getProduct(i.productId)?.cost || 0) * i.qtyConfirmed)}</td><td><button class="bad small" onclick="removeProductFromNewSupplierOrder('${i.productId}')">Quitar</button></td></tr>`).join('')}</tbody></table></div><div class="total-box"><span>Total estimado</span><strong>${money.format(selectedTotal)}</strong></div>` : '<p>No hay productos seleccionados.</p>'}
+        <div class="row mt"><button class="ok" onclick="createManualSupplierOrder()">Crear pedido</button><button class="secondary" onclick="closeNewSupplierOrder()">Cancelar</button></div>
+      </div>`;
+    }
+
+    function addProductToNewSupplierOrder(productId) {
+      const p = getProduct(productId);
+      if (!p) return;
+      const qtyEl = document.getElementById(`newQty_${productId}`);
+      const qty = Math.max(1, Number(qtyEl?.value || 1));
+      const existing = newSupplierOrderItems.find(i => i.productId === productId);
+      if (existing) existing.qtyConfirmed += qty;
+      else newSupplierOrderItems.push({ productId, qtySuggested: qty, qtyConfirmed: qty, received: 0 });
+      renderSupplierOrders();
+    }
+
+    function updateNewSupplierOrderItemQty(productId, value) {
+      const item = newSupplierOrderItems.find(i => i.productId === productId);
+      if (!item) return;
+      item.qtyConfirmed = Math.max(1, Number(value || 1));
+      item.qtySuggested = item.qtyConfirmed;
+      renderSupplierOrders();
+    }
+
+    function removeProductFromNewSupplierOrder(productId) {
+      newSupplierOrderItems = newSupplierOrderItems.filter(i => i.productId !== productId);
+      renderSupplierOrders();
+    }
+
+    function createManualSupplierOrder() {
+      if (!newSupplierOrderSupplierId) return showToast('Seleccionar proveedor.');
+      if (!newSupplierOrderItems.length) return showToast('Agregar al menos un producto.');
+      const cleanItems = newSupplierOrderItems
+        .filter(i => getProduct(i.productId) && Number(i.qtyConfirmed) > 0)
+        .map(i => ({ productId: i.productId, qtySuggested: Number(i.qtyConfirmed), qtyConfirmed: Number(i.qtyConfirmed), received: 0 }));
+      if (!cleanItems.length) return showToast('El pedido no tiene productos válidos.');
+      state.supplierOrders.push({ id: uid(), date: todayISO(), supplierId: newSupplierOrderSupplierId, status: 'Sugerido', source: 'manual', items: cleanItems });
+      save();
+      showToast('Pedido manual creado en A pedir.');
+      closeNewSupplierOrder();
+    }
+
+    function renderSupplierOrderCard(o) {
+      const total = o.items.reduce((a, i) => a + (getProduct(i.productId)?.cost || 0) * i.qtyConfirmed, 0);
+      const isSent = o.status === 'Pedido enviado';
+      const badgeClass = isSent ? 'blue' : (o.status === 'Cancelado' ? 'warn' : 'warn');
+      const actions = isSent
+        ? `<button class="secondary small" onclick="setView('ingresos')">Registrar ingreso</button><button class="bad small" onclick="cancelSupplierOrder('${o.id}')">Cancelar</button><button class="secondary small" onclick="deleteSupplierOrder('${o.id}')">Eliminar</button>`
+        : `<button class="ok small" onclick="markSupplierOrder('${o.id}','Pedido enviado')">Marcar enviado</button><button class="secondary small" onclick="setView('ingresos')">Registrar ingreso</button><button class="bad small" onclick="cancelSupplierOrder('${o.id}')">Cancelar</button><button class="secondary small" onclick="deleteSupplierOrder('${o.id}')">Eliminar</button>`;
+      return `<div class="card supplier-order-card"><div class="between"><h3>${getSupplier(o.supplierId).name}</h3><div class="row"><span class="badge ${o.source === 'manual' ? 'blue' : 'warn'}">${o.source === 'manual' ? 'Manual' : 'Stock bajo'}</span><span class="badge ${badgeClass}">${o.status}</span></div></div>
+        <table><thead><tr><th>Producto</th><th>Sugerido</th><th>Costo est.</th></tr></thead><tbody>${o.items.map(i => `<tr><td>${getProduct(i.productId)?.name}</td><td><input type="number" value="${i.qtyConfirmed}" style="width:78px" onchange="updateOrderQty('${o.id}','${i.productId}', this.value)" ${isSent ? 'disabled title="El pedido ya fue enviado"' : ''}></td><td>${money.format((getProduct(i.productId)?.cost || 0) * i.qtyConfirmed)}</td></tr>`).join('')}</tbody></table>
+        <div class="total-box"><span>Total estimado</span><strong>${money.format(total)}</strong></div>
+        <div class="row mt">${actions}</div>
+      </div>`;
+    }
+
+    function updateOrderQty(orderId, productId, value) {
+      const o = state.supplierOrders.find(x => x.id === orderId); if (!o) return;
+      const item = o.items.find(i => i.productId === productId); if (!item) return;
+      item.qtyConfirmed = Math.max(0, Number(value)); save();
+    }
+
+    function markSupplierOrder(id, status) {
+      const o = state.supplierOrders.find(x=>x.id===id);
+      if (!o) return;
+      o.status = status;
+      o.sentAt = todayISO();
+      save();
+      showToast('Pedido marcado como enviado a proveedor.');
+      render();
+    }
+    function cancelSupplierOrder(id) { const o = state.supplierOrders.find(x=>x.id===id); if (o) o.status = 'Cancelado'; render(); }
+
+    function deleteSupplierOrder(id) {
+      const index = state.supplierOrders.findIndex(x => x.id === id);
+      if (index < 0) return;
+      const order = state.supplierOrders[index];
+      if (!confirm(`Eliminar pedido de ${getSupplier(order.supplierId).name}?`)) return;
+      state.deletedSupplierSuggestions = state.deletedSupplierSuggestions || [];
+      order.items.forEach(item => {
+        const key = supplierSuggestionKey(order.supplierId, item.productId);
+        if (!state.deletedSupplierSuggestions.includes(key)) state.deletedSupplierSuggestions.push(key);
+      });
+      state.supplierOrders.splice(index, 1);
+      save();
+      showToast('Pedido eliminado. No volverá a sugerirse hasta que el stock se recupere y vuelva a bajar.');
+      render();
+    }
+
+    function renderIngress() {
+      const ingressOpenStatuses = ['Sugerido','Pedido enviado','Ingreso parcial','Ingreso suspendido'];
+      const openOrders = state.supplierOrders.filter(o=>ingressOpenStatuses.includes(o.status));
+      const selectedOrder = state.supplierOrders.find(o => o.id === selectedIngressOrderId && ingressOpenStatuses.includes(o.status));
+      document.getElementById('ingresos').innerHTML = `
+        <div class="grid">
+          <div class="card span-4"><h2>Ingreso manual</h2><p>Cargar mercadería suelta que no viene desde un pedido abierto.</p><label>Producto</label><select id="inProduct">${state.products.filter(p=>p.active).map(p=>`<option value="${p.id}">${p.name} · ${getSupplier(p.supplierId).name}</option>`).join('')}</select><label class="mt">Cantidad recibida</label><input id="inQty" type="number" value="1"><label class="mt">Nuevo costo opcional</label><input id="inCost" type="number" placeholder="Dejar vacío si no cambia"><label class="mt">Nuevo precio venta opcional</label><input id="inPrice" type="number" placeholder="Dejar vacío si no cambia"><button class="ok full mt" onclick="registerIngress()">Registrar ingreso manual</button></div>
+          <div class="card span-8"><div class="between"><h2>Pedidos para ingresar</h2><span class="badge blue">${openOrders.length}</span></div><p>Usá <strong>Ver pedido</strong> para controlar el detalle. Desde la tarjeta podés <strong>recibir completo</strong>, <strong>registrar ingreso controlado</strong> si faltó mercadería o <strong>suspender ingreso</strong> por alguna irregularidad.</p>
+            ${openOrders.length ? openOrders.map(o=>renderIngressOrderListLine(o)).join('') : '<p>No hay pedidos abiertos.</p>'}
+          </div>
+          ${selectedOrder ? renderIngressOrderDetail(selectedOrder) : '<div class="card span-12"><h2>Detalle de pedido</h2><p>Seleccioná <strong>Ver pedido</strong> en un pedido abierto para controlar productos, cantidades y costo estimado antes de dar ingreso.</p></div>'}
+        </div>`;
+    }
+
+    function renderIngressOrderListLine(o) {
+      const total = o.items.reduce((a, i) => a + (getProduct(i.productId)?.cost || 0) * Number(i.qtyConfirmed || i.qtySuggested || 0), 0);
+      const selected = selectedIngressOrderId === o.id;
+      return `<div class="list-line ${selected ? 'selected-line' : ''}">
+        <div><div class="line-title">${getSupplier(o.supplierId).name}</div><div class="line-sub">${o.items.length} productos · ${o.status} · ${o.source === 'manual' ? 'Pedido manual' : 'Sugerido del sistema'} · ${money.format(total)}${o.issueNote ? ' · Obs: ' + escapeHtml(o.issueNote) : ''}</div></div>
+        <div class="row"><button class="secondary small" onclick="viewIngressOrder('${o.id}')">Ver pedido</button>${o.status === 'Ingreso suspendido' ? `<button class="ok small" onclick="reopenIngressOrder('${o.id}')">Reactivar</button>` : `<button class="ok small" onclick="receiveFullOrder('${o.id}')">Recibir completo</button>`}</div>
+      </div>`;
+    }
+
+    function renderIngressOrderDetail(o) {
+      const total = o.items.reduce((a, i) => a + (getProduct(i.productId)?.cost || 0) * Number(i.qtyConfirmed || i.qtySuggested || 0), 0);
+      const sourceText = o.source === 'manual' ? 'Pedido manual' : 'Pedido sugerido del sistema por stock bajo';
+      const isSuspended = o.status === 'Ingreso suspendido';
+      return `<div class="card span-12">
+        <div class="between">
+          <div>
+            <h2>Ver pedido · ${getSupplier(o.supplierId).name}</h2>
+            <p>${o.status} · ${sourceText} · ${fmtDate(o.sentAt || o.date)}</p>
+            ${o.issueNote ? `<p><strong>Irregularidad:</strong> ${escapeHtml(o.issueNote)}</p>` : ''}
+          </div>
+          <div class="row">
+            ${isSuspended ? `<button class="ok" onclick="reopenIngressOrder('${o.id}')">Reactivar ingreso</button>` : `<button class="ok" onclick="receiveFullOrder('${o.id}')">Recibir completo</button>`}
+            <button class="secondary" onclick="selectedIngressOrderId=''; renderIngress();">Cerrar detalle</button>
+          </div>
+        </div>
+        <div class="table-wrap mt"><table><thead><tr><th>Producto</th><th>Origen</th><th>Pedido</th><th>Recibido acum.</th><th>Pendiente</th><th>Recibir ahora</th><th>Costo unit.</th><th>Costo est.</th><th>Stock actual</th><th>Stock proyectado</th></tr></thead><tbody>
+          ${o.items.map(i => {
+            const prod = getProduct(i.productId);
+            const ordered = Number(i.qtyConfirmed || i.qtySuggested || 0);
+            const received = Number(i.received || 0);
+            const pending = Math.max(0, ordered - received);
+            const before = Number(prod?.stock || 0);
+            const after = before + pending;
+            return `<tr>
+              <td>${prod?.name || 'Producto eliminado'}<div class="line-sub">${prod?.category || ''} · ${getSupplier(prod?.supplierId || o.supplierId).name}</div></td>
+              <td>${o.source === 'manual' ? 'Manual' : 'Sistema'}</td>
+              <td>${ordered}</td>
+              <td>${received}</td>
+              <td>${pending}</td>
+              <td><input ${isSuspended ? 'disabled' : ''} id="rec_${o.id}_${i.productId}" type="number" min="0" value="${pending}" style="max-width:95px"></td>
+              <td>${money.format(prod?.cost || 0)}</td>
+              <td>${money.format((prod?.cost || 0) * ordered)}</td>
+              <td>${before}</td>
+              <td>${after}</td>
+            </tr>`;
+          }).join('')}
+        </tbody></table></div>
+        <div class="total-box"><span>Total estimado del pedido</span><strong>${money.format(total)}</strong></div>
+        <div class="row mt">
+          <button class="ok" onclick="receiveFullOrder('${o.id}')" ${isSuspended ? 'disabled' : ''}>Recibir completo</button>
+          <button class="secondary" onclick="receiveControlledOrder('${o.id}')" ${isSuspended ? 'disabled' : ''}>Registrar ingreso controlado</button>
+          <button class="bad" onclick="suspendIngressOrder('${o.id}')" ${isSuspended ? 'disabled' : ''}>Suspender ingreso</button>
+        </div>
+        <p><strong>Recibir completo</strong> ingresa todo lo pendiente. <strong>Registrar ingreso controlado</strong> usa las cantidades de la columna “Recibir ahora” para casos donde faltó mercadería. <strong>Suspender ingreso</strong> deja el pedido bloqueado hasta revisar una irregularidad.</p>
+      </div>`;
+    }
+
+    function viewIngressOrder(orderId) {
+      selectedIngressOrderId = orderId;
+      renderIngress();
+    }
+
+    function registerIngress() {
+      const id = val('inProduct'); const qty = num('inQty'); if (!qty) return;
+      const p = getProduct(id); if (!p) return;
+      const before = Number(p.stock || 0);
+      p.stock = before + qty;
+      const newCost = document.getElementById('inCost').value;
+      const newPrice = document.getElementById('inPrice').value;
+      const oldCost = p.cost;
+      if (newCost !== '') p.cost = Number(newCost);
+      if (newPrice !== '') {
+        const oldPrice = p.price; p.price = Number(newPrice);
+        state.priceHistory.push({ id: uid(), date: todayISO(), productId: id, oldCost, newCost: p.cost, oldPrice, newPrice: p.price, note: 'Ingreso mercadería' });
+      }
+      addMove(id, 'ingreso', qty, before, p.stock, 'Ingreso manual');
+      closeSatisfiedOrders(id);
+      rebuildSuggestedOrders();
+      showToast('Ingreso registrado.'); render();
+    }
+
+    function receiveFullOrder(orderId) {
+      const o = state.supplierOrders.find(x => x.id === orderId); if (!o) return;
+      if (!o.items.length) return showToast('El pedido no tiene productos.');
+      if (o.status === 'Ingreso suspendido') return showToast('El ingreso está suspendido. Reactivalo para poder recibirlo.');
+      const supplierName = getSupplier(o.supplierId).name;
+      const ok = confirm(`Recibir completo el pedido de ${supplierName}? Se sumará todo lo pendiente al stock.`);
+      if (!ok) return;
+      o.items.forEach(i => {
+        const p = getProduct(i.productId); if (!p) return;
+        const ordered = Number(i.qtyConfirmed || i.qtySuggested || 0);
+        const already = Number(i.received || 0);
+        const qty = Math.max(0, ordered - already);
+        if (!qty) return;
+        const before = Number(p.stock || 0);
+        p.stock = before + qty;
+        i.received = already + qty;
+        addMove(p.id, 'ingreso', qty, before, p.stock, `Ingreso completo pedido ${supplierName}`);
+      });
+      o.status = 'Recibido';
+      o.receivedAt = todayISO();
+      o.issueNote = '';
+      if (selectedIngressOrderId === orderId) selectedIngressOrderId = '';
+      rebuildSuggestedOrders();
+      save();
+      showToast('Pedido recibido completo y stock actualizado.'); render();
+    }
+
+    function receiveControlledOrder(orderId) {
+      const o = state.supplierOrders.find(x => x.id === orderId); if (!o) return;
+      if (o.status === 'Ingreso suspendido') return showToast('El ingreso está suspendido. Reactivalo para poder recibirlo.');
+      const supplierName = getSupplier(o.supplierId).name;
+      let any = false;
+      o.items.forEach(i => {
+        const p = getProduct(i.productId); if (!p) return;
+        const input = document.getElementById(`rec_${orderId}_${i.productId}`);
+        const qty = Math.max(0, Number(input?.value || 0));
+        if (!qty) return;
+        const before = Number(p.stock || 0);
+        p.stock = before + qty;
+        i.received = Number(i.received || 0) + qty;
+        any = true;
+        addMove(p.id, 'ingreso', qty, before, p.stock, `Ingreso controlado pedido ${supplierName}`);
+      });
+      if (!any) return showToast('No hay cantidades para ingresar.');
+      const complete = o.items.every(i => Number(i.received || 0) >= Number(i.qtyConfirmed || i.qtySuggested || 0));
+      o.status = complete ? 'Recibido' : 'Ingreso parcial';
+      if (complete) {
+        o.receivedAt = todayISO();
+        o.issueNote = '';
+        if (selectedIngressOrderId === orderId) selectedIngressOrderId = '';
+      }
+      rebuildSuggestedOrders();
+      save();
+      showToast(complete ? 'Pedido recibido completo.' : 'Ingreso parcial registrado. Queda pendiente lo faltante.');
+      render();
+    }
+
+    function suspendIngressOrder(orderId) {
+      const o = state.supplierOrders.find(x => x.id === orderId); if (!o) return;
+      const reason = prompt('Motivo de suspensión o irregularidad del pedido:', o.issueNote || '');
+      if (reason === null) return;
+      o.status = 'Ingreso suspendido';
+      o.issueNote = reason.trim() || 'Ingreso suspendido para revisión';
+      o.suspendedAt = todayISO();
+      save();
+      showToast('Ingreso suspendido. El pedido queda pendiente de revisión.');
+      render();
+    }
+
+    function reopenIngressOrder(orderId) {
+      const o = state.supplierOrders.find(x => x.id === orderId); if (!o) return;
+      o.status = Number((o.items || []).reduce((a,i)=>a+Number(i.received||0),0)) > 0 ? 'Ingreso parcial' : 'Pedido enviado';
+      o.issueNote = '';
+      save();
+      showToast('Ingreso reactivado.');
+      render();
+    }
+
+    function closeSatisfiedOrders(productId) {
+      state.supplierOrders.forEach(o => {
+        o.items = o.items.filter(i => i.productId !== productId || (getProduct(productId)?.stock || 0) <= (getProduct(productId)?.minStock || 0));
+      });
+    }
+
+
+    function renderBrand() {
+      const st = state.settings;
+      document.getElementById('marca').innerHTML = `
+        <div class="grid">
+          <div class="card span-7">
+            <h2>Marca de la despensa</h2>
+            <p>Estos datos se usan en el link para clientes, mensajes de WhatsApp y encabezados del sistema.</p>
+            <div class="form-grid">
+              <div><label>Nombre de la despensa</label><input id="brandStoreName" value="${escapeAttr(st.storeName)}" placeholder="Ej: Despensa La Esquina"></div>
+              <div><label>Teléfono / WhatsApp</label><input id="brandPhone" value="${escapeAttr(st.phone)}" placeholder="Ej: 3510000000"></div>
+              <div><label>Ubicación / dirección</label><input id="brandLocation" value="${escapeAttr(st.location || '')}" placeholder="Ej: Av. Siempre Viva 123, barrio..."></div>
+              <div><label>Alias de pago</label><input id="brandAlias" value="${escapeAttr(st.paymentAlias)}" placeholder="Ej: DESPENSA.ALIAS"></div>
+            </div>
+            <label class="mt">Logo de la despensa</label>
+            <input id="brandLogoFile" type="file" accept="image/*" onchange="loadBrandLogo(event)">
+            <div class="row mt">
+              <button class="ok" onclick="saveBrandSettings()">Guardar marca</button>
+              <button class="secondary" onclick="clearBrandLogo()">Quitar logo</button>
+              <button class="secondary" onclick="setView('tienda')">Ver link clientes</button>
+            </div>
+          </div>
+          <div class="card span-5">
+            <h2>Vista previa</h2>
+            <div class="brand-preview">
+              <div class="store-logo-preview">${logoMarkup()}</div>
+              <div>
+                <h3>${escapeHtml(st.storeName)}</h3>
+                <div class="line-sub">Tel: ${escapeHtml(st.phone || 'Sin teléfono')}</div>
+                <div class="line-sub">Ubicación: ${escapeHtml(st.location || 'Sin ubicación')}</div>
+                <div class="line-sub">Alias pago: ${escapeHtml(st.paymentAlias || 'Sin alias')}</div>
+              </div>
+            </div>
+            <p class="mt">La marca cargada pasa a ocupar el encabezado principal del sistema y del link para clientes. KIO360 queda identificado en el pie como sistema creado por PiDBiM bajo metodología GTI360.</p>
+          </div>
+        </div>`;
+    }
+
+    function saveBrandSettings() {
+      state.settings.storeName = val('brandStoreName') || 'Despensa';
+      state.settings.phone = val('brandPhone');
+      state.settings.location = val('brandLocation');
+      state.settings.paymentAlias = val('brandAlias');
+      showToast('Marca guardada.');
+      render();
+    }
+
+    function loadBrandLogo(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.settings.logo = reader.result;
+        saveBrandSettings();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearBrandLogo() {
+      state.settings.logo = '';
+      showToast('Logo quitado.');
+      render();
+    }
+
+    function renderClientStore() {
+      const online = filterProducts(clientSearch).filter(p => p.active && p.online).slice(0, 40);
+      const total = state.clientCart.reduce((a, i) => a + i.qty * i.price, 0);
+      document.getElementById('tienda').innerHTML = `
+        <div class="mobile-hint">Vista cliente mobile: catalogo simple, carrito y confirmacion de pedido para retirar.</div>
+        <div class="grid">
+          <div class="card span-12"><div class="between"><div><h2>Link para clientes</h2><p>Vista simulada del catálogo público. El cliente arma el carrito y el pedido queda en el panel interno para preparar y retirar.</p></div><button onclick="copyClientLink()">Copiar link simulado</button></div></div>
+          <div class="span-7">
+            <div class="client-shell">
+              <div class="client-head"><div class="row"><div class="app-logo">${logoMarkup()}</div><div><h2>${state.settings.storeName}</h2><div>Pedido para retirar en tienda</div><div style="font-size:12px;opacity:.85">${escapeHtml(state.settings.location || '')}</div></div></div></div>
+              <div class="client-body">
+                <input class="search-input" placeholder="Buscar producto..." value="${escapeHtml(clientSearch)}" oninput="clientSearch=this.value; renderClientStore();">
+                <div class="row mt">${categories().map(c => `<button class="secondary small" onclick="clientSearch='${escapeAttr(c)}'; renderClientStore();">${c}</button>`).join('')}</div>
+                <h3 class="mt">Productos</h3>
+                <div class="product-buttons">${online.map(p => renderClientProductButton(p)).join('')}</div>
+              </div>
+            </div>
+          </div>
+          <div class="card span-5"><h2>Carrito cliente</h2>${state.clientCart.length ? state.clientCart.map(i => renderCartLine(i, 'client')).join('') : '<p>El carrito está vacío.</p>'}<div class="total-box"><span>Total</span><strong>${money.format(total)}</strong></div><p>WhatsApp: ${escapeHtml(state.settings.phone || '-')} · Alias: ${escapeHtml(state.settings.paymentAlias || '-')}</p>
+            <div class="form-grid mt"><div><label>Nombre cliente</label><input id="cName"></div><div><label>Teléfono</label><input id="cPhone"></div><div><label>Pago</label><select id="cPayment"><option>Pago al retirar</option><option>Transferencia</option><option>Mercado Pago</option></select></div><div><label>Retiro</label><select id="cPickup"><option>Lo antes posible</option><option>En 30 minutos</option><option>En 1 hora</option><option>Coordinar por WhatsApp</option></select></div></div><label class="mt">Observaciones</label><textarea id="cNotes" placeholder="Ej: avisar si falta algo"></textarea><button class="ok full mt" onclick="createClientOrder()" ${state.clientCart.length ? '' : 'disabled'}>Confirmar pedido cliente</button></div>
+        </div>`;
+    }
+
+    function addToClientCart(productId) {
+      const p = getProduct(productId); if (!p) return;
+      if (p.controlsStock && availableStock(p) <= cartQty(productId, state.clientCart)) return showToast('No hay stock disponible suficiente.');
+      const line = state.clientCart.find(i => i.productId === productId);
+      if (line) line.qty += 1; else state.clientCart.push({ productId, name: p.name, qty: 1, price: p.price, misc: false });
+      renderClientStore();
+    }
+
+    function createClientOrder() {
+      const name = val('cName'); const phone = val('cPhone');
+      if (!name || !phone) return showToast('Falta nombre y teléfono.');
+      const order = { id: uid(), date: todayISO(), customerName: name, phone, payment: val('cPayment'), pickup: val('cPickup'), notes: val('cNotes'), status: 'Nuevo', items: JSON.parse(JSON.stringify(state.clientCart)), total: state.clientCart.reduce((a,i)=>a+i.qty*i.price,0) };
+      state.clientOrders.push(order);
+      state.clientCart = [];
+      showToast('Pedido recibido para preparar.');
+      setView('pedidosCliente');
+    }
+
+    function renderClientOrders() {
+      const orders = state.clientOrders.slice().reverse();
+      document.getElementById('pedidosCliente').innerHTML = `
+        <div class="grid"><div class="card span-12"><h2>Pedidos de clientes para retirar</h2><p>Al confirmar retiro, el pedido se convierte en venta y descuenta stock real. Mientras está pendiente, reserva stock disponible.</p></div>
+        ${orders.length ? orders.map(o => `<div class="card span-6"><div class="between"><h3>#${o.id} · ${o.customerName}</h3>${statusBadge(o.status)}</div><p>${fmtDate(o.date)} · ${o.phone} · ${o.payment} · ${o.pickup}</p><table><tbody>${o.items.map(i => `<tr><td>${i.name}</td><td>x${i.qty}</td><td>${money.format(i.qty*i.price)}</td></tr>`).join('')}</tbody></table><div class="total-box"><span>Total</span><strong>${money.format(o.total)}</strong></div><p>${o.notes || ''}</p><div class="row"><button class="secondary small" onclick="clientOrderStatus('${o.id}','En preparación')">En preparación</button><button class="warn small" onclick="clientOrderStatus('${o.id}','Listo para retirar')">Listo</button><button class="ok small" onclick="closeClientOrder('${o.id}')">Retirado / vender</button><button class="bad small" onclick="clientOrderStatus('${o.id}','Cancelado')">Cancelar</button><button class="secondary small" onclick="copyWhatsApp('${o.id}')">Mensaje WhatsApp</button></div></div>`).join('') : '<div class="card span-12"><p>No hay pedidos de clientes.</p></div>'}</div>`;
+    }
+
+    function statusBadge(status) {
+      const cls = status === 'Retirado' ? 'ok' : status === 'Cancelado' ? 'bad' : status === 'Listo para retirar' ? 'warn' : 'blue';
+      return `<span class="badge ${cls}">${status}</span>`;
+    }
+
+    function clientOrderStatus(id, status) { const o = state.clientOrders.find(x=>x.id===id); if (o) o.status = status; render(); }
+    function closeClientOrder(id) { const o = state.clientOrders.find(x=>x.id===id); if (!o || o.status === 'Retirado') return; confirmSale(id); o.status = 'Retirado'; render(); }
+
+    function copyWhatsApp(id) {
+      const o = state.clientOrders.find(x=>x.id===id); if (!o) return;
+      const text = `Hola ${o.customerName}, tu pedido #${o.id} de ${state.settings.storeName} está ${o.status.toLowerCase()}. Total: ${money.format(o.total)}. Retiro: ${o.pickup}. Ubicación: ${state.settings.location || 'consultar en tienda'}.`;
+      navigator.clipboard?.writeText(text);
+      showToast('Mensaje copiado.');
+    }
+
+    function copyClientLink() {
+      const link = location.href.split('#')[0] + '#tienda-clientes-kio360';
+      navigator.clipboard?.writeText(link);
+      showToast('Link simulado copiado.');
+    }
+
+
+    function renderPayments() {
+      const payments = state.payments || [];
+      const today = new Date().toISOString().slice(0, 10);
+      const day = new Date().toDateString();
+      const todayTotal = payments.filter(p => new Date(p.date).toDateString() === day).reduce((a, p) => a + Number(p.amount || 0), 0);
+      const month = new Date().getMonth();
+      const year = new Date().getFullYear();
+      const monthTotal = payments.filter(p => { const d = new Date(p.date); return d.getMonth() === month && d.getFullYear() === year; }).reduce((a, p) => a + Number(p.amount || 0), 0);
+      const byType = ['Proveedor', 'Servicios', 'Personal', 'Otros'].map(type => {
+        const total = payments.filter(p => p.type === type).reduce((a, p) => a + Number(p.amount || 0), 0);
+        return `<div class="list-line"><div><div class="line-title">${type}</div><div class="line-sub">Total registrado</div></div><strong>${money.format(total)}</strong></div>`;
+      }).join('');
+
+      document.getElementById('pagos').innerHTML = `
+        <div class="grid">
+          <div class="card span-12">
+            <div class="between">
+              <div>
+                <h2>Pagos</h2>
+                <p>Registro simple de pagos a proveedores, servicios, personal y otros egresos de la despensa.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card span-4 metric"><span>Pagos de hoy</span><strong>${money.format(todayTotal)}</strong></div>
+          <div class="card span-4 metric"><span>Pagos del mes</span><strong>${money.format(monthTotal)}</strong></div>
+          <div class="card span-4 metric"><span>Registros</span><strong>${payments.length}</strong></div>
+
+          <div class="card span-5">
+            <h3>Registrar pago</h3>
+            <div class="form-grid">
+              <label>Tipo<select id="payType"><option>Proveedor</option><option>Servicios</option><option>Personal</option><option>Otros</option></select></label>
+              <label>Proveedor<select id="paySupplier"><option value="">Sin proveedor</option>${state.suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select></label>
+              <label>Concepto<input id="payConcept" placeholder="Ej: Pago mercadería, luz, sueldo, alquiler"></label>
+              <label>Monto<input id="payAmount" type="number" min="0" step="1" placeholder="0"></label>
+              <label>Medio de pago<select id="payMethod"><option>Efectivo</option><option>Transferencia</option><option>Mercado Pago</option><option>Tarjeta</option><option>Otro</option></select></label>
+              <label>Fecha<input id="payDate" type="date" value="${today}"></label>
+              <label class="wide">Observaciones<textarea id="payNotes" rows="3" placeholder="Detalle opcional"></textarea></label>
+            </div>
+            <div class="row mt"><button onclick="addPayment()">Registrar pago</button></div>
+          </div>
+
+          <div class="card span-7">
+            <h3>Resumen por tipo</h3>
+            ${byType}
+          </div>
+
+          <div class="card span-12">
+            <h3>Últimos pagos</h3>
+            ${renderPaymentsTable(payments.slice().reverse())}
+          </div>
+        </div>`;
+    }
+
+    function renderPaymentsTable(rows) {
+      if (!rows.length) return '<p>Sin pagos registrados.</p>';
+      return `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Proveedor</th><th>Concepto</th><th>Monto</th><th>Medio</th><th></th></tr></thead><tbody>${rows.map(p => `<tr><td>${fmtDate(p.date)}</td><td>${p.type}</td><td>${p.supplierId ? getSupplier(p.supplierId).name : '-'}</td><td>${escapeHtml(p.concept || '-')}</td><td>${money.format(p.amount)}</td><td>${p.method}</td><td><button class="small bad" onclick="deletePayment('${p.id}')">Eliminar</button></td></tr>`).join('')}</tbody></table>`;
+    }
+
+    function addPayment() {
+      const amount = num('payAmount');
+      if (!amount || amount <= 0) return showToast('Ingresá un monto válido.');
+      const type = val('payType') || 'Otros';
+      const supplierId = val('paySupplier');
+      const supplierName = supplierId ? getSupplier(supplierId).name : '';
+      const concept = val('payConcept') || (type === 'Proveedor' && supplierName ? `Pago a ${supplierName}` : type);
+      const dateValue = val('payDate') || new Date().toISOString().slice(0, 10);
+      state.payments = state.payments || [];
+      state.payments.push({
+        id: uid(),
+        date: dateValue + 'T12:00:00',
+        type,
+        supplierId,
+        concept,
+        amount,
+        method: val('payMethod') || 'Efectivo',
+        notes: val('payNotes')
+      });
+      showToast('Pago registrado.');
+      render();
+    }
+
+    function deletePayment(id) {
+      if (!confirm('¿Eliminar este pago?')) return;
+      state.payments = (state.payments || []).filter(p => p.id !== id);
+      showToast('Pago eliminado.');
+      render();
+    }
+
+    function renderHistory() {
+      const stats = buildManagementStats();
+      document.getElementById('historial').innerHTML = `
+        <div class="grid">
+          <div class="card span-12">
+            <div class="between">
+              <div>
+                <h2>Historial y control de gestión</h2>
+                <p>Lectura consolidada de ventas, pagos y movimientos de stock para entender la operación diaria, semanal y mensual.</p>
+              </div>
+              <button onclick="setView('dashboard')">Volver a inicio</button>
+            </div>
+          </div>
+
+          <div class="card span-4 metric"><span>Ventas de hoy</span><strong>${money.format(stats.sales.today.total)}</strong><small>${stats.sales.today.count} operaciones · ${stats.sales.today.units} unidades</small></div>
+          <div class="card span-4 metric"><span>Ventas de la semana</span><strong>${money.format(stats.sales.week.total)}</strong><small>${stats.sales.week.count} operaciones · ${stats.sales.week.units} unidades</small></div>
+          <div class="card span-4 metric"><span>Ventas del mes</span><strong>${money.format(stats.sales.month.total)}</strong><small>${stats.sales.month.count} operaciones · ${stats.sales.month.units} unidades</small></div>
+
+          <div class="card span-4 metric"><span>Pagos de hoy</span><strong>${money.format(stats.payments.today.total)}</strong><small>${stats.payments.today.count} registros</small></div>
+          <div class="card span-4 metric"><span>Pagos de la semana</span><strong>${money.format(stats.payments.week.total)}</strong><small>${stats.payments.week.count} registros</small></div>
+          <div class="card span-4 metric"><span>Pagos del mes</span><strong>${money.format(stats.payments.month.total)}</strong><small>${stats.payments.month.count} registros</small></div>
+
+          <div class="card span-4 metric"><span>Saldo operativo de hoy</span><strong>${money.format(stats.sales.today.total - stats.payments.today.total)}</strong><small>Ventas - pagos</small></div>
+          <div class="card span-4 metric"><span>Saldo operativo semanal</span><strong>${money.format(stats.sales.week.total - stats.payments.week.total)}</strong><small>Ventas - pagos</small></div>
+          <div class="card span-4 metric"><span>Saldo operativo mensual</span><strong>${money.format(stats.sales.month.total - stats.payments.month.total)}</strong><small>Ventas - pagos</small></div>
+
+          <div class="card span-12">
+            <h3>Movimientos de stock</h3>
+            <div class="dashboard-metrics">
+              <div class="card metric"><span>Ingresos hoy</span><strong>${stats.stock.today.inQty}</strong><small>unidades ingresadas</small></div>
+              <div class="card metric"><span>Salidas hoy</span><strong>${Math.abs(stats.stock.today.outQty)}</strong><small>unidades vendidas/retiradas</small></div>
+              <div class="card metric"><span>Movimientos semana</span><strong>${stats.stock.week.count}</strong><small>Entradas ${stats.stock.week.inQty} · Salidas ${Math.abs(stats.stock.week.outQty)}</small></div>
+              <div class="card metric"><span>Movimientos mes</span><strong>${stats.stock.month.count}</strong><small>Entradas ${stats.stock.month.inQty} · Salidas ${Math.abs(stats.stock.month.outQty)}</small></div>
+            </div>
+          </div>
+
+          <div class="card span-6">
+            <h3>Ventas por período</h3>
+            ${renderPeriodTable([
+              ['Hoy', stats.sales.today.count, stats.sales.today.units, money.format(stats.sales.today.total), stats.sales.today.avg],
+              ['Semana', stats.sales.week.count, stats.sales.week.units, money.format(stats.sales.week.total), stats.sales.week.avg],
+              ['Mes', stats.sales.month.count, stats.sales.month.units, money.format(stats.sales.month.total), stats.sales.month.avg]
+            ], ['Período', 'Ventas', 'Unidades', 'Total', 'Ticket prom.'])}
+          </div>
+
+          <div class="card span-6">
+            <h3>Pagos por período</h3>
+            ${renderPeriodTable([
+              ['Hoy', stats.payments.today.count, '-', money.format(stats.payments.today.total), '-'],
+              ['Semana', stats.payments.week.count, '-', money.format(stats.payments.week.total), '-'],
+              ['Mes', stats.payments.month.count, '-', money.format(stats.payments.month.total), '-']
+            ], ['Período', 'Registros', 'Unidades', 'Total', 'Referencia'])}
+          </div>
+
+          <div class="card span-6">
+            <h3>Pagos del mes por tipo</h3>
+            ${renderSummaryRows(stats.paymentsByType, 'Sin pagos en el mes.')}
+          </div>
+
+          <div class="card span-6">
+            <h3>Productos más vendidos del mes</h3>
+            ${renderTopProducts(stats.topProducts)}
+          </div>
+
+          <div class="card span-12">
+            <h3>Movimientos consolidados</h3>
+            ${renderRecentMovementsTable(40)}
+          </div>
+
+          <div class="card span-6">
+            <h3>Ventas recientes</h3>
+            ${renderSalesTable(state.sales.slice(-30).reverse())}
+          </div>
+
+          <div class="card span-6">
+            <h3>Pagos recientes</h3>
+            ${renderPaymentsTable((state.payments || []).slice().reverse().slice(0, 30))}
+          </div>
+
+          <div class="card span-12">
+            <h3>Stock: últimos movimientos</h3>
+            ${renderMovesTable((state.stockMoves || []).slice().reverse().slice(0, 50))}
+          </div>
+        </div>`;
+    }
+
+    function startOfCurrentWeek() {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      const day = d.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diff);
+      return d;
+    }
+
+    function isTodayDate(dateValue) {
+      return new Date(dateValue).toDateString() === new Date().toDateString();
+    }
+
+    function isCurrentWeekDate(dateValue) {
+      const d = new Date(dateValue);
+      const start = startOfCurrentWeek();
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+      return d >= start && d < end;
+    }
+
+    function isCurrentMonthDate(dateValue) {
+      const d = new Date(dateValue);
+      const now = new Date();
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }
+
+    function buildManagementStats() {
+      const sales = state.sales || [];
+      const payments = state.payments || [];
+      const moves = state.stockMoves || [];
+
+      const calcSales = filterFn => {
+        const rows = sales.filter(s => filterFn(s.date));
+        const total = rows.reduce((a, s) => a + Number(s.total || 0), 0);
+        const units = rows.flatMap(s => s.items || []).reduce((a, i) => a + Number(i.qty || 0), 0);
+        return { count: rows.length, total, units, avg: rows.length ? money.format(total / rows.length) : money.format(0) };
+      };
+
+      const calcPayments = filterFn => {
+        const rows = payments.filter(p => filterFn(p.date));
+        const total = rows.reduce((a, p) => a + Number(p.amount || 0), 0);
+        return { count: rows.length, total };
+      };
+
+      const calcStock = filterFn => {
+        const rows = moves.filter(m => filterFn(m.date));
+        const inQty = rows.filter(m => Number(m.qty || 0) > 0).reduce((a, m) => a + Number(m.qty || 0), 0);
+        const outQty = rows.filter(m => Number(m.qty || 0) < 0).reduce((a, m) => a + Number(m.qty || 0), 0);
+        return { count: rows.length, inQty, outQty };
+      };
+
+      const monthPayments = payments.filter(p => isCurrentMonthDate(p.date));
+      const paymentsByType = monthPayments.reduce((acc, p) => {
+        const key = p.type || 'Otros';
+        acc[key] = (acc[key] || 0) + Number(p.amount || 0);
+        return acc;
+      }, {});
+
+      const monthSales = sales.filter(s => isCurrentMonthDate(s.date));
+      const topMap = {};
+      monthSales.forEach(s => (s.items || []).forEach(i => {
+        const key = i.productId || i.name;
+        if (!topMap[key]) topMap[key] = { name: i.name, qty: 0, total: 0 };
+        topMap[key].qty += Number(i.qty || 0);
+        topMap[key].total += Number(i.qty || 0) * Number(i.price || 0);
+      }));
+      const topProducts = Object.values(topMap).sort((a, b) => b.qty - a.qty).slice(0, 8);
+
+      return {
+        sales: { today: calcSales(isTodayDate), week: calcSales(isCurrentWeekDate), month: calcSales(isCurrentMonthDate) },
+        payments: { today: calcPayments(isTodayDate), week: calcPayments(isCurrentWeekDate), month: calcPayments(isCurrentMonthDate) },
+        stock: { today: calcStock(isTodayDate), week: calcStock(isCurrentWeekDate), month: calcStock(isCurrentMonthDate) },
+        paymentsByType,
+        topProducts
+      };
+    }
+
+    function renderPeriodTable(rows, headers) {
+      return `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderSummaryRows(obj, emptyText) {
+      const rows = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]);
+      if (!rows.length) return `<p>${emptyText}</p>`;
+      return `<table><thead><tr><th>Tipo</th><th>Total</th></tr></thead><tbody>${rows.map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${money.format(v)}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderTopProducts(rows) {
+      if (!rows.length) return '<p>Sin ventas registradas en el mes.</p>';
+      return `<table><thead><tr><th>Producto</th><th>Unidades</th><th>Total vendido</th></tr></thead><tbody>${rows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td>${r.qty}</td><td>${money.format(r.total)}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderSalesTable(rowsArg) {
+      const rows = rowsArg || state.sales.slice(-30).reverse();
+      if (!rows.length) return '<p>Sin ventas registradas.</p>';
+      return `<table><thead><tr><th>Fecha</th><th>Items</th><th>Total</th><th>Pago</th></tr></thead><tbody>${rows.map(s => `<tr><td>${fmtDate(s.date)}</td><td>${(s.items || []).map(i=>`${escapeHtml(i.name)} x${i.qty}`).join('<br>')}</td><td>${money.format(s.total)}</td><td>${escapeHtml(s.payment)}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+
+    function renderRecentMovementsTable(limit = 10) {
+      // Consolidado de gestión: usa ventas maestras, pagos y movimientos de stock.
+      // Las ventas se leen desde state.sales para no perder operaciones que no generan movimiento de stock
+      // directo, como varios, productos sin control de stock o pedidos cliente ya convertidos en venta.
+      const saleRows = (state.sales || []).map(s => ({
+        date: s.date,
+        flow: 'Venta',
+        detail: (s.items || []).map(i => `${i.name} x${i.qty}`).join(' · ') || 'Venta registrada',
+        type: s.payment || 'Venta',
+        amount: Number(s.total || 0),
+        reference: s.note || `Venta ${s.id || ''}`
+      }));
+
+      const stockRows = (state.stockMoves || [])
+        .filter(m => m.type !== 'venta')
+        .map(m => ({
+          date: m.date,
+          flow: 'Stock',
+          detail: getProduct(m.productId)?.name || 'Producto eliminado',
+          type: m.type,
+          amount: m.qty,
+          reference: `${m.before} → ${m.after}`
+        }));
+
+      const paymentRows = (state.payments || []).map(p => ({
+        date: p.date,
+        flow: 'Pago',
+        detail: p.concept || (p.supplierId ? `Pago a ${getSupplier(p.supplierId).name}` : 'Pago registrado'),
+        type: p.type,
+        amount: -Number(p.amount || 0),
+        reference: `${p.method || '-'}${p.supplierId ? ' · ' + getSupplier(p.supplierId).name : ''}`
+      }));
+
+      const rows = saleRows.concat(paymentRows, stockRows)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, limit);
+      if (!rows.length) return '<p>Sin movimientos.</p>';
+      return `<table><thead><tr><th>Fecha</th><th>Flujo</th><th>Detalle</th><th>Tipo</th><th>Importe / Cant.</th><th>Referencia</th></tr></thead><tbody>${rows.map(r => {
+        const badgeClass = r.flow === 'Pago' ? 'bad' : (r.flow === 'Venta' ? 'ok' : 'blue');
+        const amountText = r.flow === 'Pago'
+          ? money.format(Math.abs(r.amount))
+          : (r.flow === 'Venta' ? money.format(r.amount) : r.amount);
+        return `<tr><td>${fmtDate(r.date)}</td><td><span class="badge ${badgeClass}">${r.flow}</span></td><td>${escapeHtml(r.detail)}</td><td>${escapeHtml(r.type)}</td><td>${amountText}</td><td>${escapeHtml(r.reference)}</td></tr>`;
+      }).join('')}</tbody></table>`;
+    }
+
+    function renderMovesTable(rows) {
+      if (!rows.length) return '<p>Sin movimientos.</p>';
+      return `<table><thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cant.</th><th>Stock</th></tr></thead><tbody>${rows.map(m => `<tr><td>${fmtDate(m.date)}</td><td>${getProduct(m.productId)?.name || 'Producto eliminado'}</td><td>${m.type}</td><td>${m.qty}</td><td>${m.before} → ${m.after}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
+    function num(id) { return Number(document.getElementById(id)?.value || 0); }
+    function escapeHtml(s) { return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+    function escapeAttr(s) { return String(s || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
+
+    function exportData() {
+      const data = JSON.stringify(state, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'kio360-datos.json'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importDataPrompt() {
+      const input = document.createElement('input');
+      input.type = 'file'; input.accept = 'application/json';
+      input.onchange = e => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => { try { state = JSON.parse(reader.result); save(); render(); showToast('Datos importados.'); } catch { showToast('Archivo inválido.'); } };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function resetDemo() {
+      if (!confirm('Esto reemplaza los datos actuales por la demo inicial.')) return;
+      state = JSON.parse(JSON.stringify(initialState));
+      save(); render(); showToast('Demo restaurada.');
+    }
+
+    window.addEventListener('hashchange', () => {
+      if (location.hash.includes('tienda') && canAccessView('tienda')) setView('tienda');
+    });
+
+    rebuildSuggestedOrders();
+    if (location.hash.includes('tienda') && canAccessView('tienda')) activeView = 'tienda';
+    render();
+  </script>
+</body>
+</html>

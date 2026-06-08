@@ -1,1 +1,13 @@
-KIO360 v23 demo para Vercel. Roles demo: Administrador con acceso completo; Asistente, Venta y Stock sin acceso a Historial. Los roles son visuales para demo; la seguridad real debe implementarse con backend, login y base de datos.
+KIO360 demo v25
+
+Archivos:
+- index.html: app demo KIO360.
+- vercel.json: rewrite para que /cliente cargue el mismo index.html como vista publica cliente.
+
+Rutas:
+- / abre el sistema interno demo.
+- /cliente abre la tienda publica para pedidos de cliente.
+
+Notas:
+- Los roles son simulacion visual para demo.
+- Los datos se guardan localmente en el navegador mediante localStorage.

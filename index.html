@@ -791,11 +791,13 @@
     if (!rolePermissions[demoRole]) demoRole = 'admin';
 
     function isPublicStoreMode() {
-      return location.hash === '#cliente' || location.hash === '#tienda-clientes-kio360' || location.search.includes('cliente=1');
+      const path = location.pathname.replace(/\/$/, '');
+      return path.endsWith('/cliente') || location.search.includes('cliente=1');
     }
 
     function publicStoreLink() {
-      return location.origin + location.pathname + '#cliente';
+      const basePath = location.pathname.replace(/\/$/, '').replace(/\/cliente$/, '');
+      return location.origin + (basePath || '') + '/cliente';
     }
 
     const initialState = {
@@ -2244,8 +2246,7 @@
     }
 
     window.addEventListener('hashchange', () => {
-      if (isPublicStoreMode()) setView('tienda');
-      else if (location.hash.includes('tienda') && canAccessView('tienda')) setView('tienda');
+      if (!isPublicStoreMode() && location.hash.includes('tienda') && canAccessView('tienda')) setView('tienda');
     });
 
     rebuildSuggestedOrders();

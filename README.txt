@@ -1,13 +1,20 @@
-KIO360 demo v26
+KIO360 Demo v27
 
-Archivos:
-- index.html: app demo KIO360.
-- vercel.json: rewrite para que /cliente cargue el mismo index.html como vista publica cliente.
+Archivos para publicar en Vercel:
+- index.html
+- vercel.json
+- README.txt
 
 Rutas:
-- / abre el sistema interno demo.
-- /cliente abre la tienda publica para pedidos de cliente.
+- / abre el sistema interno de demo.
+- /cliente abre la vista publica del cliente.
+- /analisis abre la vista local limpia para usar el contexto IA generado desde Historial.
 
-Notas:
-- Los roles son simulacion visual para demo.
-- Los datos se guardan localmente en el navegador mediante localStorage.
+Nota:
+Los roles y el contexto IA son simulaciones locales de demo. La persistencia real, usuarios, permisos y links compartibles deben implementarse luego con backend/base de datos.
+
+
+Version v28: corrige tarjetas metricas del inicio en vista movil para evitar desbordes numericos.
+
+
+Versión v29: métricas del inicio en mobile convertidas a lista vertical para evitar desbordes de texto y valores.

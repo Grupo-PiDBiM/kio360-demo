@@ -714,7 +714,179 @@
       max-width: 100%;
     }
 
+
+    body.analysis-mode header,
+    body.analysis-mode nav,
+    body.analysis-mode footer {
+      display: none !important;
+    }
+
+    body.analysis-mode {
+      background: #e7edf3;
+    }
+
+    body.analysis-mode main {
+      max-width: 780px;
+      padding: 14px;
+    }
+
+    body.analysis-mode .view {
+      display: none;
+    }
+
+    body.analysis-mode #analisis.view.active {
+      display: block;
+    }
+
+    .ai-analysis-shell {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .ai-analysis-hero {
+      background: linear-gradient(135deg, #0f3d5e, #1e7a76);
+      color: #fff;
+      border: 0;
+    }
+
+    .ai-analysis-hero h1,
+    .ai-analysis-hero h2,
+    .ai-analysis-hero h3,
+    .ai-analysis-hero p {
+      color: #fff;
+    }
+
+    .ai-analysis-hero p {
+      opacity: .88;
+    }
+
+    .ai-action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .ai-action-grid { grid-template-columns: 1fr; }
+    }
+
       .selected-line { outline: 2px solid rgba(46, 134, 121, .35); background: #f3fbf8; }
+
+
+    /* KIO360 v28 - mobile dashboard metric cards fix */
+    @media (max-width: 760px) {
+      .dashboard-metrics {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        width: 100%;
+      }
+
+      .dashboard-metrics .card.metric,
+      .card.metric {
+        min-width: 0;
+        overflow: hidden;
+        min-height: 92px;
+        padding: 12px 10px;
+      }
+
+      .dashboard-metrics .metric span,
+      .card.metric span {
+        font-size: 12px;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+      }
+
+      .dashboard-metrics .metric strong,
+      .card.metric strong {
+        display: block;
+        max-width: 100%;
+        font-size: clamp(23px, 7vw, 30px);
+        line-height: 1.02;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .dashboard-metrics .metric small,
+      .card.metric small {
+        font-size: 11px;
+        line-height: 1.2;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .dashboard-metrics {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+
+
+    /* KIO360 v29 - mobile dashboard metrics as vertical list */
+    @media (max-width: 760px) {
+      .dashboard-metrics {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      .dashboard-metrics .metric {
+        min-height: 0 !important;
+        padding: 12px 14px !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        grid-template-areas:
+          "label value"
+          "detail value" !important;
+        align-items: center !important;
+        column-gap: 12px !important;
+        row-gap: 2px !important;
+        overflow: hidden !important;
+      }
+      .dashboard-metrics .metric span {
+        grid-area: label !important;
+        font-size: 14px !important;
+        line-height: 1.2 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+      .dashboard-metrics .metric strong {
+        grid-area: value !important;
+        font-size: clamp(24px, 7vw, 34px) !important;
+        line-height: 1 !important;
+        text-align: right !important;
+        white-space: nowrap !important;
+        max-width: 45vw !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .dashboard-metrics .metric small {
+        grid-area: detail !important;
+        color: var(--muted) !important;
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+        white-space: normal !important;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .dashboard-metrics .metric {
+        grid-template-columns: 1fr !important;
+        grid-template-areas:
+          "label"
+          "value"
+          "detail" !important;
+        align-items: start !important;
+      }
+      .dashboard-metrics .metric strong {
+        text-align: left !important;
+        max-width: 100% !important;
+        font-size: clamp(24px, 10vw, 32px) !important;
+      }
+    }
+
 </style>
 </head>
 <body>
@@ -762,6 +934,7 @@
     <section id="pedidosCliente" class="view"></section>
     <section id="pagos" class="view"></section>
     <section id="historial" class="view"></section>
+    <section id="analisis" class="view"></section>
   </main>
 
   <footer class="system-footer">
@@ -772,6 +945,8 @@
 
   <script>
     const STORAGE_KEY = 'kio360_state_v1';
+    const AI_ADVISOR_PROMPT_KEY = 'kio360_ai_advisor_prompt_v1';
+    const AI_ADVISOR_META_KEY = 'kio360_ai_advisor_meta_v1';
     const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
 
     const DEMO_ROLE_KEY = 'kio360_demo_role_v1';
@@ -795,9 +970,26 @@
       return path.endsWith('/cliente') || location.search.includes('cliente=1');
     }
 
+    function isAiAnalysisMode() {
+      const path = location.pathname.replace(/\/$/, '');
+      return path.endsWith('/analisis') || location.search.includes('analisis=1');
+    }
+
+    function baseDemoPath() {
+      return location.pathname
+        .replace(/\/$/, '')
+        .replace(/\/cliente$/, '')
+        .replace(/\/analisis$/, '');
+    }
+
     function publicStoreLink() {
-      const basePath = location.pathname.replace(/\/$/, '').replace(/\/cliente$/, '');
+      const basePath = baseDemoPath();
       return location.origin + (basePath || '') + '/cliente';
+    }
+
+    function aiAnalysisLink() {
+      const basePath = baseDemoPath();
+      return location.origin + (basePath || '') + '/analisis';
     }
 
     const initialState = {
@@ -898,6 +1090,7 @@
 
     function canAccessView(view) {
       if (isPublicStoreMode()) return view === 'tienda';
+      if (isAiAnalysisMode()) return view === 'analisis';
       return (rolePermissions[demoRole] || rolePermissions.admin).includes(view);
     }
 
@@ -917,6 +1110,8 @@
     function setView(view) {
       if (isPublicStoreMode()) {
         activeView = 'tienda';
+      } else if (isAiAnalysisMode()) {
+        activeView = 'analisis';
       } else if (!canAccessView(view)) {
         showToast(`Acceso restringido para rol ${roleLabels[demoRole]}.`);
         activeView = firstAllowedView();
@@ -929,7 +1124,7 @@
     }
 
     function renderRoleControls() {
-      if (isPublicStoreMode()) return;
+      if (isPublicStoreMode() || isAiAnalysisMode()) return;
       const selector = document.getElementById('roleSelector');
       if (selector) selector.value = demoRole;
       document.querySelectorAll('.admin-only').forEach(el => {
@@ -942,7 +1137,7 @@
     }
 
     function renderTabs() {
-      if (isPublicStoreMode()) {
+      if (isPublicStoreMode() || isAiAnalysisMode()) {
         document.getElementById('tabs').innerHTML = '';
         return;
       }
@@ -993,7 +1188,9 @@
 
     function render() {
       document.body.classList.toggle('public-store-mode', isPublicStoreMode());
+      document.body.classList.toggle('analysis-mode', isAiAnalysisMode());
       if (isPublicStoreMode()) activeView = 'tienda';
+      if (isAiAnalysisMode()) activeView = 'analisis';
       if (!canAccessView(activeView)) activeView = firstAllowedView();
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       const activeEl = document.getElementById(activeView);
@@ -1013,6 +1210,7 @@
       renderClientOrders();
       renderPayments();
       renderHistory();
+      renderAiAnalysisView();
       save();
     }
 
@@ -1987,9 +2185,9 @@
                 <p>Lectura consolidada de ventas, pagos y movimientos de stock para entender la operación diaria, semanal y mensual.</p>
               </div>
               <div class="row">
-                <button class="ok" onclick="copyAiAdvisorPrompt()">Copiar contexto IA</button>
+                <button class="ok" onclick="openAiAnalysisDemo()">Generar análisis IA</button>
+                <button class="secondary" onclick="copyAiAnalysisDemoLink()">Copiar link de análisis</button>
                 <button class="secondary" onclick="downloadAiAdvisorPrompt()">Descargar contexto</button>
-                <button onclick="openAiAdvisor()">Abrir IA</button>
                 <button class="secondary" onclick="setView('dashboard')">Volver a inicio</button>
               </div>
             </div>
@@ -2376,8 +2574,35 @@ function buildAiAdvisorPrompt() {
       ].join('\n');
     }
 
-function copyAiAdvisorPrompt() {
-      const text = buildAiAdvisorPrompt();
+    function prepareAiAdvisorPrompt() {
+      const prompt = buildAiAdvisorPrompt();
+      localStorage.setItem(AI_ADVISOR_PROMPT_KEY, prompt);
+      localStorage.setItem(AI_ADVISOR_META_KEY, JSON.stringify({
+        createdAt: todayISO(),
+        storeName: state.settings?.storeName || 'Despensa',
+        source: 'KIO360 demo local'
+      }));
+      return prompt;
+    }
+
+    function currentAiAdvisorPrompt() {
+      return localStorage.getItem(AI_ADVISOR_PROMPT_KEY) || prepareAiAdvisorPrompt();
+    }
+
+    function openAiAnalysisDemo() {
+      prepareAiAdvisorPrompt();
+      window.open(aiAnalysisLink(), '_blank');
+      showToast('Análisis IA preparado.');
+    }
+
+    function copyAiAnalysisDemoLink() {
+      prepareAiAdvisorPrompt();
+      const link = aiAnalysisLink();
+      navigator.clipboard?.writeText(link).then(() => showToast('Link de análisis copiado.')).catch(() => showToast('No se pudo copiar el link.'));
+    }
+
+    function copyAiAdvisorPrompt() {
+      const text = currentAiAdvisorPrompt();
       navigator.clipboard?.writeText(text).then(() => showToast('Contexto IA copiado.')).catch(() => {
         const el = document.getElementById('aiAdvisorPrompt');
         if (el) { el.focus(); el.select(); document.execCommand('copy'); showToast('Contexto IA copiado.'); }
@@ -2385,8 +2610,8 @@ function copyAiAdvisorPrompt() {
       });
     }
 
-function downloadAiAdvisorPrompt() {
-      const data = buildAiAdvisorPrompt();
+    function downloadAiAdvisorPrompt() {
+      const data = currentAiAdvisorPrompt();
       const blob = new Blob([data], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -2397,9 +2622,41 @@ function downloadAiAdvisorPrompt() {
       showToast('Contexto IA descargado.');
     }
 
-function openAiAdvisor() {
+    function openAiAdvisor() {
       copyAiAdvisorPrompt();
       window.open('https://chatgpt.com/', '_blank');
+    }
+
+    function renderAiAnalysisView() {
+      const el = document.getElementById('analisis');
+      if (!el) return;
+      let meta = {};
+      try { meta = JSON.parse(localStorage.getItem(AI_ADVISOR_META_KEY) || '{}'); } catch { meta = {}; }
+      const prompt = currentAiAdvisorPrompt();
+      const stats = buildManagementStats();
+      el.innerHTML = `
+        <div class="ai-analysis-shell">
+          <div class="card ai-analysis-hero">
+            <span class="badge blue">KIO360 IA · Demo local</span>
+            <h2 class="mt">Contexto de gestión preparado</h2>
+            <p>El sistema preparó un paquete de datos para que una IA analice la situación del local y recomiende acciones. El texto completo queda oculto; usá los botones para copiarlo, abrir ChatGPT o descargarlo.</p>
+            <div class="ai-action-grid">
+              <button class="ok" onclick="copyAiAdvisorPrompt()">Copiar para IA</button>
+              <button onclick="openAiAdvisor()">Abrir ChatGPT</button>
+              <button class="secondary" onclick="downloadAiAdvisorPrompt()">Descargar contexto</button>
+              <button class="secondary" onclick="window.location.href='/'">Volver al sistema</button>
+            </div>
+          </div>
+          <div class="card mt">
+            <h3>Qué incluye el contexto</h3>
+            <div class="list-line"><div><div class="line-title">Ventas, pagos y saldo operativo</div><div class="line-sub">Hoy, semana y mes.</div></div><span class="badge ok">Incluido</span></div>
+            <div class="list-line"><div><div class="line-title">Stock, productos y proveedores</div><div class="line-sub">Bajo stock, más vendidos, margen bajo y pedidos abiertos.</div></div><span class="badge ok">Incluido</span></div>
+            <div class="list-line"><div><div class="line-title">Pedidos y movimientos recientes</div><div class="line-sub">Pedidos clientes pendientes y últimos movimientos consolidados.</div></div><span class="badge ok">Incluido</span></div>
+            <div class="total-box"><span>Contexto generado</span><strong>${prompt.length.toLocaleString('es-AR')} caracteres</strong></div>
+            <p>Generado para: <strong>${escapeHtml(meta.storeName || state.settings?.storeName || 'Despensa')}</strong>${meta.createdAt ? ' · ' + fmtDate(meta.createdAt) : ''}.</p>
+          </div>
+          <textarea id="aiAdvisorPrompt" readonly aria-hidden="true" tabindex="-1" style="position:absolute;left:-99999px;top:auto;width:1px;height:1px;opacity:0;pointer-events:none;">${escapeHtml(prompt)}</textarea>
+        </div>`;
     }
 
     function val(id) { return document.getElementById(id)?.value?.trim() || ''; }
@@ -2435,11 +2692,12 @@ function openAiAdvisor() {
     }
 
     window.addEventListener('hashchange', () => {
-      if (!isPublicStoreMode() && location.hash.includes('tienda') && canAccessView('tienda')) setView('tienda');
+      if (!isPublicStoreMode() && !isAiAnalysisMode() && location.hash.includes('tienda') && canAccessView('tienda')) setView('tienda');
     });
 
     rebuildSuggestedOrders();
     if (isPublicStoreMode()) activeView = 'tienda';
+    else if (isAiAnalysisMode()) activeView = 'analisis';
     else if (location.hash.includes('tienda') && canAccessView('tienda')) activeView = 'tienda';
     render();
   </script>
